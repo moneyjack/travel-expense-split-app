@@ -1,0 +1,7 @@
+{
+  "name": "SplitTrek",
+  "description": "A mobile-first expense splitting app for travelers with AI receipt scanning.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
