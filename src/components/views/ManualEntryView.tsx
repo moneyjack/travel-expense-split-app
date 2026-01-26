@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
-
-// Icon 元件 (保持一致)
+const Avatar = ({ member, size = 'sm' }: { member: any, size?: 'sm' | 'md' }) => (
+  <div className={`${size === 'sm' ? 'w-6 h-6 text-xs' : 'w-10 h-10 text-lg'} ${member.color} rounded-full flex items-center justify-center text-white font-bold shadow-sm border border-white`}>
+    {member.avatar || member.name[0]}
+  </div>
+);
+// Icon 元件
 const Icons = {
   Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
-  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>,
+  Users: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
 };
 
 interface ManualEntryViewProps {
@@ -24,19 +29,17 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
   const activeTrip = trips.find(t => t.id === activeTripId);
   const members = activeTrip?.members || [];
 
-  // --- State 初始化 (全空) ---
+  // --- State 初始化 ---
   const [shopName, setShopName] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   
-  // 預設先給一個空項目，方便使用者直接打
+  // 預設先給一個空項目
   const [items, setItems] = useState<EditingItem[]>([
     { name: '', quantity: 1, price: 0, assignedTo: [] }
   ]);
   
-  // 預設 payer (Host 或第一位成員)
+  // 預設 payer
   const [payerId, setPayerId] = useState<string>(members.find(m => m.isHost)?.id || members[0]?.id || '');
-
-  // --- 邏輯功能 (跟 ConfirmReceiptView 一模一樣) ---
 
   const updateItem = (index: number, field: keyof EditingItem, value: any) => {
     const newItems = [...items];
@@ -49,7 +52,6 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
   };
 
   const deleteItem = (index: number) => {
-    // 如果只剩一行，不要刪除，改成清空內容（選擇性 UX）
     if (items.length === 1 && index === 0) {
         setItems([{ name: '', quantity: 1, price: 0, assignedTo: [] }]);
         return;
@@ -69,8 +71,19 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
     setItems(newItems);
   };
 
+  // ★ 新增功能：一鍵全選 (除大數)
+  const handleSplitAll = (index: number) => {
+    const newItems = [...items];
+    const allMemberIds = members.map(m => m.id);
+    
+    // 邏輯：直接把 assignedTo 設為所有成員 ID
+    // (如果想做成 toggle：判斷是否已全選，是則清空，否則全選。這裡先做單純的「全選」)
+    newItems[index].assignedTo = allMemberIds;
+    
+    setItems(newItems);
+  };
+
   const handleSave = async () => {
-    // 簡單驗證
     if (!shopName.trim()) {
         alert("Please enter a Shop Name");
         return;
@@ -81,7 +94,9 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
         return;
     }
 
-    // 呼叫 Context
+    // ★ 關鍵：在儲存前，確保如果 assignedTo 是空的 (代表忘了選)，預設邏輯是「所有人」還是「沒人」？
+    // 為了安全起見，這裡我們保持原樣，讓 createExpense 去處理（通常後端或 Context 會處理空陣列 = 所有人，或者你可以在這裡強制轉換）
+    // 建議：既然 UI 已經有明確的 Split All 按鈕，這裡就照實傳送。
     await createExpense(shopName, payerId, validItems, undefined, date); 
   };
 
@@ -98,7 +113,7 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
         </button>
       </div>
 
-      {/* 1. 店名、日期、付款人 (無圖片版) */}
+      {/* 1. 店名、日期、付款人 */}
       <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 space-y-4">
          <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
@@ -141,7 +156,7 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
          </div>
       </div>
 
-      {/* 2. 項目列表 (跟 ConfirmReceiptView 完全一致) */}
+      {/* 2. 項目列表 */}
       <div className="space-y-3">
         {items.map((item, idx) => (
           <div key={idx} className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 relative group">
@@ -187,24 +202,47 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
             </div>
 
             {/* 第二行：分帳選擇 */}
-            <div className="flex gap-1 overflow-x-auto no-scrollbar pt-2 border-t border-gray-50">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2 border-t border-gray-50 items-center">
+               
+               {/* ★ Split All 按鈕 */}
+               <button
+                  onClick={() => handleSplitAll(idx)}
+                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all shrink-0 ${
+                    item.assignedTo.length === members.length 
+                      ? 'bg-indigo-50 text-primary border-indigo-100' // 全選狀態
+                      : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
+                  }`}
+               >
+                  <Icons.Users /> All
+               </button>
+
+               {/* 分隔線 */}
+               <div className="w-[1px] h-6 bg-gray-100 shrink-0"></div>
+
+               {/* 成員列表 */}
                {members.map(member => {
                  const isSelected = item.assignedTo.includes(member.id);
                  return (
-                   <button
-                     key={member.id}
-                     onClick={() => toggleMemberForItem(idx, member.id)}
-                     className={`flex flex-col items-center min-w-[32px] gap-1 transition-all ${isSelected ? 'opacity-100 scale-105' : 'opacity-40 scale-95 grayscale'}`}
-                   >
-                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] shadow-sm ${member.color} ${isSelected ? 'ring-2 ring-primary ring-offset-1' : ''}`}>
-                       {member.avatar}
-                     </div>
-                   </button>
+                   <button 
+                    key={member.id}
+                    onClick={() => toggleMemberForItem(idx, member.id)}
+                    className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap ${
+                      isSelected 
+                      ? `bg-white border-${member.color.replace('bg-', '')} shadow-sm ring-1 ring-${member.color.replace('bg-', '')}` 
+                      : 'bg-gray-100 border-transparent opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <Avatar member={member} size="sm" />
+                    <span className={`text-xs font-bold ${isSelected ? 'text-gray-900' : 'text-gray-500'}`}>{member.name}</span>
+                  </button>
+                  
                  );
                })}
-               <div className="flex items-center ml-2">
-                 <span className="text-[10px] text-gray-400 font-medium">
-                   {item.assignedTo.length === 0 ? 'Split All' : `${item.assignedTo.length}`}
+               
+               {/* 計數器 */}
+               <div className="flex items-center ml-auto pl-2">
+                 <span className="text-[10px] text-gray-300 font-bold">
+                   {item.assignedTo.length}/{members.length}
                  </span>
                </div>
             </div>

@@ -4,7 +4,9 @@ import { Button } from '../ui/Button';
 // Icon 元件
 const Icons = {
   Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
-  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>,
+  Users: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+
 };
 
 interface ConfirmReceiptViewProps {
@@ -72,7 +74,12 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
     }
     setItems(newItems);
   };
-
+  const handleSplitAll = (index: number) => {
+    const newItems = [...items];
+    // 直接將 assignedTo 設為所有成員 ID
+    newItems[index].assignedTo = members.map(m => m.id);
+    setItems(newItems);
+  };
   const handleSave = async () => {
     // 這裡我們之後可能要把 Date 也傳給 createExpense，目前先傳標題
     // 建議將 shopName 和 Date 合併成 Title，或者修改 createExpense 支援 date 參數
@@ -183,7 +190,24 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
             </div>
 
             {/* 第二行：分帳選擇 */}
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pt-3 border-t border-gray-50 mt-2">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2 border-t border-gray-50 mt-2 items-center">
+               
+               {/* ★ 1. 新增：All 按鈕 */}
+               <button
+                  onClick={() => handleSplitAll(idx)}
+                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all shrink-0 ${
+                    item.assignedTo.length === members.length 
+                      ? 'bg-indigo-50 text-primary border-indigo-100' // 全選狀態
+                      : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
+                  }`}
+               >
+                  <Icons.Users /> All
+               </button>
+               
+               {/* 分隔線 */}
+               <div className="w-[1px] h-5 bg-gray-100 shrink-0"></div>
+
+               {/* ★ 2. 原本的成員列表 (保持不變) */}
                {members.map(member => {
                  const isSelected = item.assignedTo.includes(member.id);
                  return (
@@ -206,10 +230,10 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                  );
                })}
                
-               {/* 顯示選取人數 (選填) */}
+               {/* 顯示選取人數 */}
                <div className="flex items-center ml-auto pl-2 border-l border-gray-100">
                  <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                   {item.assignedTo.length === 0 ? 'Nobody' : `${item.assignedTo.length} Selected`}
+                   {item.assignedTo.length === 0 ? 'Nobody' : `${item.assignedTo.length}/${members.length}`}
                  </span>
                </div>
             </div>

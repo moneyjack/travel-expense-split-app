@@ -30,7 +30,7 @@ const Icons = {
 };
 
 export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => void }) => {
-  const { updateTripName, updateMember, deleteTrip } = useTripContext();
+  const { updateTripName, updateMember, deleteTrip, addMember, removeMember } = useTripContext();
   
   // Tab 狀態: 'general' | 'members'
   const [activeTab, setActiveTab] = useState('general');
@@ -41,6 +41,9 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
   const [tempMemberName, setTempMemberName] = useState('');
   const [tempAvatar, setTempAvatar] = useState('');
   const [tempColor, setTempColor] = useState('');
+
+  const [isAddingMember, setIsAddingMember] = useState(false);
+  const [newMemberName, setNewMemberName] = useState('');
 
   // 1. 儲存旅程名稱
   const handleSaveTrip = async () => {
@@ -78,7 +81,17 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
     });
     setEditingMember(null); // 回到列表
   };
-
+  const handleAddMember = async () => {
+    if (!newMemberName.trim()) return;
+    // 檢查重名
+    if (trip.members.some((m: any) => m.name.toLowerCase() === newMemberName.trim().toLowerCase())) {
+        alert("Member already exists");
+        return;
+    }
+    await addMember(trip.id, newMemberName);
+    setNewMemberName('');
+    setIsAddingMember(false);
+  };
   // --- 內部子視圖：成員編輯器 ---
   if (editingMember) {
     return (
@@ -195,26 +208,57 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
             <div className="space-y-4">
               <p className="text-sm text-gray-400 font-medium mb-2">Tap on a member to edit details.</p>
               {trip.members.map((m: any) => (
-                <button 
-                  key={m.id}
-                  onClick={() => startEditMember(m)}
-                  className="w-full flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl hover:border-primary hover:shadow-md transition-all group"
-                >
-                   <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full ${m.color} flex items-center justify-center text-lg text-white shadow-sm`}>
-                        {m.avatar}
-                      </div>
-                      <span className="font-bold text-gray-800">{m.name}</span>
-                   </div>
-                   <div className="text-gray-300 group-hover:text-primary">
-                     <Icons.Edit />
-                   </div>
-                </button>
+                <div key={m.id} className="flex gap-2">
+                    <button 
+                    onClick={() => startEditMember(m)}
+                    className="flex-1 flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl hover:border-primary hover:shadow-md transition-all group text-left"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full ${m.color} flex items-center justify-center text-lg text-white shadow-sm`}>
+                                {m.avatar}
+                            </div>
+                            <span className="font-bold text-gray-800">{m.name}</span>
+                        </div>
+                        <div className="text-gray-300 group-hover:text-primary">
+                            <Icons.Edit />
+                        </div>
+                    </button>
+                    
+                    {/* ★ 刪除按鈕 */}
+                    <button 
+                        onClick={() => removeMember(trip.id, m.id)}
+                        className="p-3 bg-red-50 text-red-400 rounded-2xl hover:bg-red-100 hover:text-red-500 transition-colors"
+                        title="Remove Member"
+                    >
+                        <Icons.Trash />
+                    </button>
+                </div>
               ))}
-              
-              <div className="p-4 mt-6 bg-gray-50 rounded-2xl text-center">
-                 <p className="text-xs text-gray-400">To add new members, please use the main menu.</p>
-              </div>
+              {isAddingMember ? (
+                  <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 animate-in zoom-in-95">
+                      <label className="text-xs font-bold text-indigo-400 uppercase mb-2 block">New Member Name</label>
+                      <div className="flex gap-2">
+                          <input 
+                              value={newMemberName}
+                              onChange={e => setNewMemberName(e.target.value)}
+                              className="flex-1 px-3 py-2 rounded-xl border border-indigo-200 outline-none focus:ring-2 focus:ring-indigo-300"
+                              placeholder="Name"
+                              autoFocus
+                          />
+                          <button onClick={handleAddMember} className="bg-primary text-white px-4 rounded-xl font-bold text-sm">Add</button>
+                          <button onClick={() => setIsAddingMember(false)} className="text-gray-400 px-2">Cancel</button>
+                      </div>
+                  </div>
+              ) : (
+                  <button 
+                    onClick={() => setIsAddingMember(true)}
+                    className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-bold hover:border-primary hover:text-primary hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                  >
+                      <span className="text-xl">+</span> Add New Member
+                  </button>
+              )}
+
+            
             </div>
           )}
         </div>

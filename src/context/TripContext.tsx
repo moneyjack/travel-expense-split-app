@@ -20,7 +20,8 @@ interface TripContextType {
     updateTripName: (tripId: string, name: string) => Promise<void>;
     updateMember: (memberId: string, updates: { name?: string; avatar?: string; color?: string }) => Promise<void>;
     deleteTrip: (tripId: string) => Promise<void>;
-
+    addMember: (tripId: string, name: string) => Promise<void>;
+    removeMember: (tripId: string, memberId: string) => Promise<void>;
     // --- Auth ---
     session: Session | null;
     currentUserId: string;
@@ -286,15 +287,92 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 2. 修改成員 (名字、頭像、顏色)
     const updateMember = async (memberId: string, updates: { name?: string; avatar?: string; color?: string }) => {
+        setLoading(true);
         try {
-            const { error } = await supabase.from('trip_members').update(updates).eq('id', memberId);
-            if (error) throw error;
-            await fetchTrips();
+        // ★ 正確：更新 trip_members 表
+        const { error } = await supabase
+            .from('trip_members')
+            .update(updates)
+            .eq('id', memberId);
+
+        if (error) throw error;
+        await fetchTrips();
         } catch (e: any) {
-            alert('Update member failed: ' + e.message);
+        alert('Update member failed: ' + e.message);
+        } finally {
+        setLoading(false);
+        }
+    };
+     // 1. 新增成員 (修正版：寫入 trip_members 表)
+    const addMember = async (tripId: string, name: string) => {
+        setLoading(true);
+        try {
+        // 準備要寫入的新成員資料
+        const newMemberPayload = {
+            trip_id: tripId,
+            name: name,
+            avatar: '🙂', // 給個預設 Emoji
+            color: 'bg-gray-400', // 給個預設顏色
+            is_host: false,
+            user_id: null // 訪客沒有 user_id
+        };
+
+        // ★ 修正：直接 Insert 到 trip_members 表
+        const { error } = await supabase
+            .from('trip_members')
+            .insert([newMemberPayload]);
+
+        if (error) throw error;
+        
+        // 成功後重新抓取資料
+        await fetchTrips();
+        } catch (e: any) {
+        alert('Add member failed: ' + e.message);
+        } finally {
+        setLoading(false);
         }
     };
 
+  // 2. 移除成員 (修正版：從 trip_members 表刪除)
+    const removeMember = async (tripId: string, memberId: string) => {
+        const currentTrip = trips.find(t => t.id === tripId);
+        if (!currentTrip) return;
+
+        // --- 安全檢查邏輯 (保持不變) ---
+        const isInvolved = currentTrip.expenses.some(exp => {
+            if (exp.payerId === memberId) return true;
+            // 檢查 assignedTo (這裡已經是 ID array)
+            const activeSplitters = exp.items.flatMap(item => item.assignedTo || []);
+            if (activeSplitters.includes(memberId)) return true;
+            return false;
+        });
+
+        if (isInvolved) {
+            alert("Cannot remove this member because they are part of existing transactions.\n\nPlease edit or delete those transactions first.");
+            return;
+        }
+
+        if (!confirm("Are you sure you want to remove this member?")) return;
+        // ----------------------------
+
+        setLoading(true);
+        try {
+            // ★ 修正：直接從 trip_members 表刪除
+            const { error } = await supabase
+                .from('trip_members')
+                .delete()
+                .eq('id', memberId)
+                .eq('trip_id', tripId); // 雙重確認比較安全
+
+            if (error) throw error;
+            
+            await fetchTrips();
+        } catch (e: any) {
+            alert('Remove member failed: ' + e.message);
+        } finally {
+            setLoading(false);
+        }
+    };
     // 3. 刪除旅程 (危險操作)
     const deleteTrip = async (tripId: string) => {
         if (!confirm('Are you sure you want to delete this trip? This cannot be undone.')) return;
@@ -351,7 +429,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         appView, setAppView, activeTripTab, setActiveTripTab, loading,
         trips, setTrips, activeTripId, setActiveTripId, session, currentUserId, setCurrentUserId,
         fetchTrips, createTrip, createExpense, updateExpense, updateTripName, updateMember, deleteTrip, deleteExpense
-        , toggleExpenseSettled, settleAllExpenses
+        , toggleExpenseSettled, settleAllExpenses, addMember, removeMember
     };
 
     return <TripContext.Provider value={value}>{children}</TripContext.Provider>;
