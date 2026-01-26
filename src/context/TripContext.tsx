@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Trip, AppView, TripTab, Member } from '../types';
 import { supabase } from '../lib/supabase'; // 確保路徑正確
-import { Session } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
 
 interface TripContextType {
     // --- UI ---
@@ -139,34 +139,51 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(false);
         }
     };
-
-    const createTrip = async (name: string, ghostMembers: Partial<Member>[], currency: string = 'HKD') => {
+    const createTrip = async (name: string, members: any[], currency: string) => {
         if (!session?.user) return alert("Please login first");
         setLoading(true);
         try {
-            const { data: tripData, error: tripError } = await supabase
-                .from('trips')
-                .insert([{ name: name, created_by: session.user.id, currency: currency }])
-                .select().single();
-            if (tripError) throw tripError;
+        // 1. 建立 Trip
+        const { data: trip, error: tripError } = await supabase
+            .from('trips')
+            .insert([{ 
+                name, 
+                currency, 
+                created_by: user?.id // 記錄建立者 ID
+            }])
+            .select()
+            .single();
 
-            const membersPayload = [
-                { trip_id: tripData.id, name: 'Me', user_id: session.user.id, is_host: true, avatar: '😎', color: 'bg-primary' },
-                ...ghostMembers.map(m => ({ trip_id: tripData.id, name: m.name, user_id: null, is_host: false, avatar: m.avatar, color: m.color }))
-            ];
+        if (tripError) throw tripError;
 
-            const { error: memberError } = await supabase.from('trip_members').insert(membersPayload);
-            if (memberError) throw memberError;
+        // 2. 準備成員資料
+        // 注意：這裡的 members 已經包含 Host (CreateTrip 頁面傳過來的)
+        // 我們只需要幫忙補上 trip_id 和 user_id
+        const membersPayload = members.map(m => ({
+            trip_id: trip.id,
+            name: m.name,
+            avatar: m.avatar,
+            color: m.color,
+            is_host: m.is_host || false, // 確保有 host 標記
+            // ★ 關鍵：如果是 Host，就把當前登入的 user.id 寫進去，方便權限控管
+            user_id: m.is_host ? user?.id : null 
+        }));
 
-            await fetchTrips();
-            setActiveTripId(tripData.id);
-            setAppView(AppView.TRIP_DETAIL);
-        } catch (error: any) {
-            alert('Create trip failed: ' + error.message);
+        const { error: memberError } = await supabase
+            .from('trip_members')
+            .insert(membersPayload);
+
+        if (memberError) throw memberError;
+
+        await fetchTrips();
+        } catch (e: any) {
+        console.error(e);
+        alert('Create trip failed: ' + e.message);
         } finally {
-            setLoading(false);
+        setLoading(false);
         }
     };
+    
 
     // ★ 2. Create Expense (關鍵修正：寫入 receiptUrl 和 date)
     const createExpense = async (title: string, payerId: string, items: any[], receiptUrl?: string, date?: string) => {

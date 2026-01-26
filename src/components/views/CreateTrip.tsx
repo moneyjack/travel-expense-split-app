@@ -185,10 +185,21 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
   // 5. 建立旅程
   const handleCreateTrip = async () => {
     if (!newTripName.trim()) return;
+    
+    // 清理 ID
     const cleanMembers = newTripMembers.map(({ tempId, ...rest }) => rest);
     const { tempId, ...cleanHost } = hostDetails;
     
-    await createTrip(newTripName, cleanMembers, cleanHost, currency);
+    // ★ 修正 1: 將 Host 合併到成員列表中
+    // 我們把 Host 放在第一位，並手動加上 is_host: true 標記 (這樣寫入資料庫時才會被識別為房主)
+    const allMembers = [
+        { ...cleanHost, is_host: true }, 
+        ...cleanMembers
+    ];
+    
+    // ★ 修正 2: 移除多餘的參數，確保 currency 在第 3 個位置
+    // 正確順序： (Trip Name, All Members, Currency)
+    await createTrip(newTripName, allMembers, currency);
   };
 
   return (

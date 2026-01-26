@@ -121,7 +121,7 @@ const MainContent = () => {
             onCreateTrip={() => setAppView(AppView.CREATE_TRIP)}
             onSimulateGuestLink={(id) => {
                // 這裡處理訪客連結邏輯
-               alert(`Share this link: app.com/join/${id}`);
+               alert(`${window.location.origin}/join/${id}`);
             }}
           />
         )}
