@@ -9,6 +9,8 @@ const Icons = {
   Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
   Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
   Search: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  // ★ 新增 CheckCircle Icon
+  CheckCircle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
 };
 
 // --- Sub-components ---
@@ -33,7 +35,8 @@ interface TransactionDetailModalProps {
 }
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ expense, onClose }) => {
-  const { trips, activeTripId, updateExpense,deleteExpense, loading } = useTripContext();
+  // ★ 1. 引入 toggleExpenseSettled
+  const { trips, activeTripId, updateExpense, deleteExpense, toggleExpenseSettled, loading } = useTripContext();
   const activeTrip = trips.find(t => t.id === activeTripId);
   const members = activeTrip?.members || [];
 
@@ -43,7 +46,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
   
   // --- Data States (Buffer for editing) ---
   const [editedTitle, setEditedTitle] = useState(expense.description || expense.title);
-  const [editedPayerId, setEditedPayerId] = useState(expense.payerId); // ★ 新增：暫存付款人 ID
+  const [editedPayerId, setEditedPayerId] = useState(expense.payerId);
   const [editedDate, setEditedDate] = useState(new Date(expense.date).toISOString().split('T')[0]);
   const [editedItems, setEditedItems] = useState<any[]>([]);
 
@@ -62,10 +65,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
   }, [isEditing, expense]);
 
   const handleSave = async () => {
-    // 1. Calculate new total
     const newTotal = editedItems.reduce((sum, item) => sum + Number(item.price), 0);
-    
-    // 2. Call Context update
     await updateExpense(
         expense.id, 
         { 
@@ -76,16 +76,27 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
         }, 
         editedItems
     );
-    
     setIsEditing(false);
     onClose(); 
   };
+
   const handleDeleteExpense = async () => {
     if (confirm("Are you sure you want to delete this entire expense? This action cannot be undone.")) {
         await deleteExpense(expense.id);
-        onClose(); // 刪除後關閉視窗
+        onClose();
     }
   };
+
+  // ★ 2. 處理切換結算狀態
+  const handleToggleSettle = async () => {
+      const action = expense.is_settled ? "re-open (unsettle)" : "settle";
+      // 這裡你可以選擇要不要 confirm，如果不想要彈窗確認，可以直接呼叫
+      if (confirm(`Do you want to ${action} this expense?`)) {
+          await toggleExpenseSettled(expense.id, expense.is_settled);
+          onClose(); // 切換後關閉視窗，讓使用者在 Dashboard 看到變灰的效果
+      }
+  };
+
   const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...editedItems];
     newItems[index] = { ...newItems[index], [field]: value };
@@ -119,14 +130,13 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
     ? editedItems.reduce((s, i) => s + Number(i.price), 0) 
     : (expense.totalAmount || expense.amount);
 
-    const memberShares = useMemo(() => {
+  const memberShares = useMemo(() => {
     const shares: Record<string, number> = {};
     
     displayItems.forEach((item: any) => {
       const price = Number(item.price) || 0;
       const assignees = item.assignedTo || [];
       
-      // 如果有指定成員，就平分
       if (assignees.length > 0) {
         const perPerson = price / assignees.length;
         assignees.forEach((uid: string) => {
@@ -141,17 +151,13 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
         }
       }
     });
-    
-    // 排序：金額大到小
     return Object.entries(shares).sort(([, a], [, b]) => b - a);
-  }, [displayItems]);
+  }, [displayItems, members]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       
-      {/* Modal Content */}
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative flex flex-col max-h-[90vh] animate-in zoom-in-95 overflow-hidden">
         
         {/* Header */}
@@ -167,8 +173,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                     placeholder="Shop Name"
                   />
                   
-                <div className="flex gap-4">
-                    {/* ★ 日期選擇器 */}
+                  <div className="flex gap-4">
                     <div className="flex flex-col gap-1">
                        <label className="text-[10px] font-bold text-gray-400 uppercase">Date</label>
                        <input 
@@ -178,8 +183,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                          className="bg-gray-100 border-none rounded-lg px-2 py-1 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary/20"
                        />
                     </div>
-
-                    {/* 付款人選擇器 */}
                     <div className="flex flex-col gap-1 flex-1">
                         <label className="text-[10px] font-bold text-gray-400 uppercase">Paid By</label>
                         <select 
@@ -196,10 +199,13 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                 </>
               ) : (
                 <>
-                  <h2 className="text-xl font-bold text-gray-800 leading-tight">{expense.description || expense.title}</h2>
+                  <h2 className="text-xl font-bold text-gray-800 leading-tight">
+                      {expense.description || expense.title}
+                      {/* 狀態標記 */}
+                      {expense.is_settled && <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full align-middle">Settled</span>}
+                  </h2>
                   <p className="text-xs text-gray-400 font-medium mt-1">
-                     {new Date(expense.date).toLocaleDateString()} • Paid by  {members.find((m: any) => m.id === expense.payerId)?.name || 'Unknown'}
-                    
+                     {new Date(expense.date).toLocaleDateString()} • Paid by {members.find((m: any) => m.id === expense.payerId)?.name || 'Unknown'}
                   </p>
                 </>
               )}
@@ -210,8 +216,21 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                 <Button size="sm" onClick={handleSave} disabled={loading} className="rounded-full px-4">Save</Button>
              ) : (
                 <>
-                  <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><Icons.Close /></button>
+                  {/* ★ 3. Settle Toggle Button */}
+                  <button 
+                    onClick={handleToggleSettle}
+                    className={`p-2 rounded-full transition-colors ${
+                        expense.is_settled 
+                        ? 'bg-green-100 text-green-600 border border-green-200' // 已結算：綠色
+                        : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500' // 未結算：灰色 -> 懸停綠色
+                    }`}
+                    title={expense.is_settled ? "Mark as Unsettled" : "Mark as Settled"}
+                  >
+                     <Icons.CheckCircle />
+                  </button>
+
                   <button onClick={() => setIsEditing(true)} className="p-2 text-primary hover:bg-indigo-50 rounded-full"><Icons.Pencil /></button>
+                  <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><Icons.Close /></button>
                 </>
              )}
            </div>
@@ -242,8 +261,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                        // --- EDIT MODE ROW ---
                        <div className="w-full space-y-2">
                           <div className="flex gap-2">
-                            
-
                              <input 
                                value={item.name} 
                                onChange={e => updateItem(idx, 'name', e.target.value)}
@@ -276,7 +293,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                                   <button 
                                     key={m.id}
                                     onClick={() => toggleAssignment(idx, m.id)}
-                                    // 樣式改為 flex 佈局，顯示名字
                                     className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap ${
                                       isSelected 
                                       ? `bg-white border-${m.color.replace('bg-', '')} shadow-sm ring-1 ring-${m.color.replace('bg-', '')}` 
@@ -292,64 +308,39 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                           </div>
                        </div>
                     ) : (
-                    // --- VIEW MODE ROW (Flexbox Table Layout) ---
+                    // --- VIEW MODE ROW ---
                        <div className="py-1 border-b border-gray-50 last:border-0 w-full">
-                          
-                          {/* 第一行：品項資料 (仿表格排版) */}
                           <div className="flex items-start w-full gap-3 mb-2">
-                             
-                             {/* Col 1: 名稱 (自動延伸，佔據所有剩餘空間) */}
                              <span className="flex-1 text-sm font-bold text-gray-900 leading-tight pt-1 break-words">
                                 {item.name}
                              </span>
-
-                             {/* Col 2: 數量 (固定寬度，禁止壓縮) */}
                              <div className="w-10 shrink-0 flex justify-center pt-0.5">
                                 <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-md block whitespace-nowrap">
                                   x{item.quantity}
                                 </span>
                              </div>
-
-                             {/* Col 3: 金額 (固定寬度，靠右，禁止壓縮) */}
                              <span className="w-20 shrink-0 text-sm font-bold text-gray-900 text-right pt-1">
                                 ${Number(item.price).toLocaleString()}
                              </span>
                           </div>
                           
-                          {/* 第二行：分帳成員 (膠囊標籤) */}
                           <div className="flex flex-wrap gap-2 pl-0.5">
                              {(!item.assignedTo || item.assignedTo.length === 0) ? (
-                               // Everyone 標籤
-                               <div 
-                                    // 樣式改為 flex 佈局，顯示名字
-                                    className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap ${
-                                    'bg-gray-100 border-transparent'
-                                    }`}
-                                >
+                               <div className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap bg-gray-100 border-transparent`}>
                                     <span className={`pl-2 text-xs font-bold text-gray-500`}> Everyone</span>
                                 </div>
-                                
-                            //    <div className="flex items-center gap-1.5 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100 shrink-0">
-                                  
-                            //       <span className="text-[10px] font-bold text-blue-600">👥 Everyone</span>
-                            //    </div>
                              ) : (
-                               // 成員標籤
                                item.assignedTo.map((uid: string) => {
                                   const m = members.find((mem: any) => mem.id === uid);
                                   if (!m) return null;
                                   return (
                                     <div 
                                         key={m.id}
-                                        // 樣式改為 flex 佈局，顯示名字
-                                        className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap ${
-                                        'bg-gray-100 border-transparent'
-                                        }`}
+                                        className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap bg-gray-100 border-transparent`}
                                     >
                                         <Avatar member={m} size="sm" />
                                         <span className={`text-xs font-bold text-gray-500`}>{m.name}</span>
                                     </div>
-
                                   );
                                })
                              )}
@@ -359,6 +350,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                  </div>
               ))}
            </div>
+           
            {!isEditing && memberShares.length > 0 && (
              <div className="mt-6 pt-4 border-t border-gray-100 animate-in slide-in-from-bottom-2">
                 <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">Member Shares</h3>
@@ -401,7 +393,6 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
 
       </div>
 
-      {/* Lightbox Overlay */}
       {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
     </div>
   );

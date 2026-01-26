@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { GeminiParsedItem } from "../types";
+import { GeminiParsedItem } from "../src/types";
 
 // ★ 這裡請填入你的 OpenRouter API Key
 // 建議在 .env 檔案中設定 VITE_OPENROUTER_API_KEY
@@ -34,44 +34,45 @@ export const processReceiptImage = async (base64Image: string): Promise<ParseRes
   const modelId = "google/gemini-2.5-flash-lite"; 
 
  const prompt = `
-    Analyze this receipt image (which could be in English, Japanese, or other languages).
+    You are an AI assistant helping a user in **Hong Kong** digitize their receipts.
     
-    ### 1. LAYOUT ANALYSIS (CRITICAL)
-    This receipt uses a specific format for each item block:
-    - **Line 1:** Item Name (e.g., "Fried Rice", "チャーハン")
-    - **Line 2 (Optional):** Modifiers (e.g., "Extra Meat", "大盛")
-    - **Last Line of Block:** Contains specific columns: "Unit Price" | "Quantity" | "Total Price"
-
-    ### 2. EXTRACTION RULES
-    - **Name:** Combine Line 1 and Line 2 (Modifiers) into one name.
-    - **Quantity:** Look for the number before characters like "点", "x", or just a number indicating count. If not found, use 1.
-    - **Price:** You MUST use the **RIGHTMOST** number (The Line Total). 
-      -> **IGNORE** the leftmost number (Unit Price).
+    ### CORE INSTRUCTION (MUST FOLLOW)
+    Your output MUST be in **Traditional Chinese (Hong Kong usage / 繁體中文)**.
+    Even if the receipt is in Japanese or English, you **MUST translate** the item names into Chinese.
     
-    ### 3. ANTI-DUPLICATION FILTER
-    - **Do NOT** output the "Unit Price" as a separate item.
-    - Only output ONE entry per visual block on the receipt.
+    ---
 
-    ### 4. METADATA
-    - **Shop Name**: Most prominent text at top.
-    - **Date**: YYYY-MM-DD format. Default to TODAY.
+    ### 1. EXTRACTION & TRANSLATION RULES
+    Analyze the image and extract line items. For each item:
+    
+    1.  **Extract**: Read the text (e.g., "すき焼きうどん").
+    2.  **Translate**: Convert it to Hong Kong Chinese (e.g., "壽喜燒烏冬").
+        * "鶏クリームうどん" -> "雞肉忌廉烏冬"
+        * "Fried Rice" -> "炒飯"
+        * "Beer" -> "啤酒"
+    3.  **Assign**: Put the *translated* text into the "name" field.
+    
+    **DO NOT return Japanese or English text in the "name" field unless it is a specific brand name without a translation.**
 
-    ### 5. TRANSLATION RULES (IMPORTANT)
-    - **Translate the 'name' of every item into Traditional Chinese (Hong Kong usage / 繁體中文).**
-    - If the item is already in Chinese, keep it.
-    - Examples:
-      - "Fried Rice" -> "炒飯"
-      - "Ramen" -> "拉麵"
-      - "Beer" -> "啤酒"
-      - "Pizza" -> "薄餅"
-      - "Service Charge" -> "服務費"
+    ### 2. LAYOUT PARSING
+    - **Quantity**: Look for numbers before "点", "x", or counts. Default to 1.
+    - **Price**: Use the **Total Price** for that line (usually the rightmost number). Ignore unit prices.
+    - **Merge**: If an item takes two lines (Name + Modifier), combine them into one string.
 
-    Return ONLY raw JSON:
+    ### 3. METADATA
+    - **Shop Name**: Extract the most prominent text at the top.
+    - **Date**: Extract YYYY-MM-DD. If missing, use TODAY.
+
+    ### 4. OUTPUT FORMAT
+    Return ONLY raw JSON. No markdown.
+    
+    Example Output:
     {
-      "shopName": "String",
-      "date": "YYYY-MM-DD",
+      "shopName": "Tsuru Ton Tan",
+      "date": "2026-01-21",
       "items": [
-        { "name": "炒飯", "quantity": 2, "price": 3200 } 
+        { "name": "壽喜燒烏冬", "quantity": 1, "price": 1880 },
+        { "name": "雞肉忌廉烏冬", "quantity": 1, "price": 1630 }
       ]
     }
   `;

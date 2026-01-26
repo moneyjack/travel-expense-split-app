@@ -103,7 +103,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
                         date: e.date || e.created_at,
                         payerId: e.payer_id,
                         receiptUrl: e.receipt_image_url, // 確保這裡有對應到 DB 的欄位
-
+                        is_settled: e.is_settled || false, // ★ 新增這行
                         // ★ 關鍵修復：處理細項
                         items: (e.expense_items || []).map((i: any) => ({
                             id: i.id,

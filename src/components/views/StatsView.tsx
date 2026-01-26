@@ -1,11 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Trip, Debt } from '../../types';
-import { useTripContext } from '../../context/TripContext'; // 引入 Context
-import { formatCurrency } from '../../utils/currency';
+import { useTripContext } from '../../context/TripContext'; 
+import { formatCurrency, CURRENCIES } from '../../utils/currency'; // 確保 CURRENCIES 有被引入
 
 // Icons
 const Icons = {
   CheckCircle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
+  Refresh: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>,
+  ArrowRight: () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
 };
 
 const Avatar = ({ member, size = 'md' }: { member: any, size?: 'sm' | 'md' | 'lg' | 'xl' }) => {
@@ -22,7 +24,7 @@ const Avatar = ({ member, size = 'md' }: { member: any, size?: 'sm' | 'md' | 'lg
   );
 };
 
-// 核心演算法：計算債務與花費 (加入 is_settled 過濾)
+// 核心演算法：計算債務與花費
 const calculateTripStats = (trip: Trip) => {
   const balances: Record<string, number> = {}; 
   const spending: Record<string, number> = {}; 
@@ -32,7 +34,6 @@ const calculateTripStats = (trip: Trip) => {
     spending[m.id] = 0;
   });
 
-  // ★ 關鍵：只計算 is_settled 為 false (或 undefined) 的項目
   const activeExpenses = trip.expenses.filter(e => !e.is_settled);
 
   activeExpenses.forEach(expense => {
@@ -43,30 +44,22 @@ const calculateTripStats = (trip: Trip) => {
     balances[payerId] += amount;
 
     let itemsTotal = 0;
-
     expense.items.forEach(item => {
       const itemPrice = Number(item.price);
       itemsTotal += itemPrice;
-
       const splitters = (item.assignedTo && item.assignedTo.length > 0) 
         ? item.assignedTo 
         : trip.members.map(m => m.id);
-
       const splitAmount = itemPrice / splitters.length;
-
       splitters.forEach((uid: string) => {
-        if (balances[uid] !== undefined) {
-           balances[uid] -= splitAmount;
-        }
+        if (balances[uid] !== undefined) balances[uid] -= splitAmount;
       });
     });
 
     const discrepancy = amount - itemsTotal;
     if (Math.abs(discrepancy) > 0.01) {
        const splitDiff = discrepancy / trip.members.length;
-       trip.members.forEach(m => {
-          balances[m.id] -= splitDiff;
-       });
+       trip.members.forEach(m => balances[m.id] -= splitDiff);
     }
   });
 
@@ -100,12 +93,10 @@ const calculateTripStats = (trip: Trip) => {
 
     debtor.amount += amount;
     creditor.amount -= amount;
-
     if (Math.abs(debtor.amount) < 0.01) i++;
     if (creditor.amount < 0.01) j++;
   }
 
-  // 回傳多一個參數：是否有未結算項目
   return { debts, spending, hasUnsettled: activeExpenses.length > 0 };
 };
 
@@ -115,15 +106,24 @@ interface StatsViewProps {
 }
 
 export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => {
-  const { settleAllExpenses, loading } = useTripContext(); // 使用 Context
+  const { settleAllExpenses, loading } = useTripContext();
   const { debts, spending, hasUnsettled } = useMemo(() => calculateTripStats(trip), [trip]);
-  
   const maxSpend = Math.max(...Object.values(spending).map(Number), 1);
+
+  // ★ 新增：匯率轉換狀態
+  const [showConversion, setShowConversion] = useState(false);
+  const [targetCurrency, setTargetCurrency] = useState('HKD');
+  // 預設匯率 (這是一個簡單的估算，或者你可以預設為 1)
+  // 如果是 JPY -> HKD，預設 0.053
+  const [exchangeRate, setExchangeRate] = useState(
+      trip.currency === 'JPY' && targetCurrency === 'HKD' ? 0.053 : 
+      trip.currency === 'TWD' && targetCurrency === 'HKD' ? 0.25 : 1
+  );
 
   return (
     <div className="space-y-8 pb-24 animate-in fade-in">
       
-      {/* 1. 結算按鈕區塊 (只有當有未結算項目時顯示) */}
+      {/* 1. 結算按鈕 */}
       {hasUnsettled && (
         <div className="bg-indigo-50 p-4 rounded-3xl flex justify-between items-center border border-indigo-100">
             <div>
@@ -142,7 +142,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
 
       {/* 2. 花費圖表 */}
       <section className="bg-white p-6 rounded-3xl shadow-sm">
-        <h3 className="text-lg font-bold text-gray-800 mb-6">Spending Breakdown (Unsettled)</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-6">Spending Breakdown</h3>
         <div className="space-y-4">
           {trip.members.map(m => {
             const amount = spending[m.id] || 0;
@@ -168,7 +168,55 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
 
       {/* 3. 結算方案 */}
       <section>
-        <h3 className="text-lg font-bold text-gray-800 mb-4 px-2">Settlement Plan</h3>
+        <div className="flex justify-between items-end mb-4 px-2">
+            <h3 className="text-lg font-bold text-gray-800">Settlement Plan</h3>
+            
+            {/* ★ 匯率切換按鈕 */}
+            <button 
+                onClick={() => setShowConversion(!showConversion)}
+                className="text-xs font-bold text-primary bg-indigo-50 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-indigo-100 transition-colors"
+            >
+               <Icons.Refresh /> {showConversion ? 'Hide Converter' : 'Convert Currency'}
+            </button>
+        </div>
+
+        {/* ★ 匯率輸入工具列 */}
+        {showConversion && (
+            <div className="bg-gray-50 p-4 rounded-2xl mb-4 border border-gray-100 animate-in slide-in-from-top-2">
+                <div className="text-xs font-bold text-gray-400 uppercase mb-2">Exchange Rate Calculator</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* 1. Base Currency (唯讀) */}
+                    <div className="bg-white px-3 py-2 rounded-xl font-bold text-gray-500 border border-gray-200">
+                        1 {trip.currency}
+                    </div>
+                    <span className="text-gray-400">=</span>
+                    
+                    {/* 2. Rate Input */}
+                    <input 
+                        type="number" 
+                        value={exchangeRate}
+                        onChange={e => setExchangeRate(Number(e.target.value))}
+                        step="0.001"
+                        className="w-24 px-3 py-2 rounded-xl font-bold text-gray-900 border border-gray-200 outline-none focus:ring-2 focus:ring-primary/20 text-center"
+                    />
+
+                    {/* 3. Target Currency Selector */}
+                    <select 
+                        value={targetCurrency}
+                        onChange={e => setTargetCurrency(e.target.value)}
+                        className="bg-white px-3 py-2 rounded-xl font-bold text-primary border border-gray-200 outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                        {CURRENCIES.filter(c => c.code !== trip.currency).map(c => (
+                            <option key={c.code} value={c.code}>{c.code}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="mt-2 text-[10px] text-gray-400">
+                    * Enter the agreed rate (e.g. 0.053 for JPY to HKD)
+                </div>
+            </div>
+        )}
+
         {debts.length === 0 ? (
           <div className="p-6 bg-emerald-50 rounded-3xl text-emerald-700 text-center border border-emerald-100">
             <p className="font-bold text-lg mb-1">All settled up! 🎉</p>
@@ -181,20 +229,35 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
               const to = trip.members.find(m => m.id === debt.to);
               
               if (!from || !to) return null;
-
               const involvesMe = from.id === currentUserId || to.id === currentUserId;
+              
+              // ★ 計算轉換後的金額
+              const convertedAmount = debt.amount * exchangeRate;
               
               return (
                 <div key={idx} className={`bg-white p-5 rounded-2xl shadow-sm flex items-center justify-between border-l-4 ${involvesMe ? 'border-l-primary bg-indigo-50/30' : 'border-l-pink-400'}`}>
                   <div className="flex items-center gap-3">
                     <Avatar member={from} size="sm" />
-                    <div className="text-sm">
-                      <span className="font-bold text-gray-800">{from.id === currentUserId ? 'You' : from.name}</span>
-                      <span className="text-gray-400 mx-1">owe</span>
-                      <span className="font-bold text-gray-800">{to.id === currentUserId ? 'You' : to.name}</span>
+                    <div className="text-sm flex flex-col">
+                      <div className="flex items-center gap-1">
+                          <span className="font-bold text-gray-800">{from.id === currentUserId ? 'You' : from.name}</span>
+                          <span className="text-gray-400 text-xs">owe</span>
+                          <span className="font-bold text-gray-800">{to.id === currentUserId ? 'You' : to.name}</span>
+                      </div>
                     </div>
                   </div>
-                  <div className="font-bold text-gray-900">{formatCurrency(debt.amount, trip.currency)}</div>
+                  
+                  <div className="text-right">
+                      {/* 原幣金額 */}
+                      <div className="font-bold text-gray-900">{formatCurrency(debt.amount, trip.currency)}</div>
+                      
+                      {/* ★ 顯示轉換後的金額 */}
+                      {showConversion && (
+                          <div className="text-sm font-bold text-primary mt-0.5">
+                              ≈ {formatCurrency(convertedAmount, targetCurrency)}
+                          </div>
+                      )}
+                  </div>
                 </div>
               );
             })}

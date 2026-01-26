@@ -24,7 +24,7 @@ export interface Expense {
   totalAmount: number;
   isParsed?: boolean;
   receiptImageUrl?: string;
-    is_settled?: boolean; // 新增此欄位以標記是否已結清
+  is_settled: boolean; // 新增此欄位以標記是否已結清
 }
 
 export interface Trip {

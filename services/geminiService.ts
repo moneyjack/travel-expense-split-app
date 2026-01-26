@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { GeminiParsedItem } from "../types";
+import { GeminiParsedItem } from "../src/types";
 
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 

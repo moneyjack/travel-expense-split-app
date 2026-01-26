@@ -15,6 +15,7 @@ import { TransactionDetailModal } from './src/components/views/TransactionDetail
 import { ManualEntryView } from './src/components/views/ManualEntryView'; // ★ 新增這行
 import Login from './src/components/Login.tsx'; // 假設你有建立 Login 組件
 
+
 // --- 引入 UI 組件 ---
 import { Loading } from './src/components/ui/Loading';
 import { Button } from './src/components/ui/Button';
@@ -78,9 +79,9 @@ const MainContent = () => {
     try {
       setIsAnalyzing(true);
       setShowAddMenu(false); // 關閉選單
-
       // A. 先上傳到 Supabase Storage (備份原圖)
       console.log("Uploading to Supabase...");
+      
       const publicUrl = await uploadReceiptImage(file);
       if (publicUrl) {
         setScannedImage(publicUrl);
@@ -90,7 +91,7 @@ const MainContent = () => {
       console.log("Analyzing with Gemini...");
       const base64 = await fileToBase64(file);
       const result = await processReceiptImage(base64);
-      
+
       console.log("Analysis Result:", result);
       setScanResult(result);
       setAppView(AppView.SCAN_RECEIPT); // 切換到確認頁 (記得在 types.ts 補上這個 enum)
@@ -140,7 +141,7 @@ const MainContent = () => {
         {/* 旅程詳情頁 (Dashboard / Stats) */}
         {appView === AppView.TRIP_DETAIL && activeTrip && (
           <>
-            <div className="px-6 pt-6">
+            <div className="px-6 py-6">
               {activeTripTab === TripTab.DASHBOARD ? (
                 <TripDashboard 
                   trip={activeTrip}
@@ -201,7 +202,7 @@ const MainContent = () => {
          type="file" 
          ref={fileInputRef} 
          className="hidden" 
-         accept="image/*" // 限制只能選圖片
+         accept="image/jpeg, image/png" // 限制只能選圖片
          capture="environment" // 手機上優先開啟後置相機
          onChange={handleFileChange}
        />
