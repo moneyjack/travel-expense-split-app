@@ -1,5 +1,6 @@
 import React from 'react';
 import { Trip } from '../../types.ts';
+import { formatCurrency } from '../../utils/currency';
 
 const Icons = {
   ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
@@ -59,7 +60,7 @@ export const TripList: React.FC<TripListProps> = ({
                     <p className="text-xs text-gray-400 font-medium">{new Date(trip.date).toLocaleDateString()}</p>
                   </div>
                   <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold">
-                    ${total.toFixed(0)}
+                    {formatCurrency(total, trip.currency)}
                   </div>
                 </div>
                 <div className="flex -space-x-2">

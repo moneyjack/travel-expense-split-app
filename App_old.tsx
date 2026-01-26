@@ -502,7 +502,7 @@ export default function App() {
                     </div>
                     </div>
                     <div className="flex -space-x-2">
-                    {trip.members.map(m => <Avatar key={m.id} member={m} />)}
+                    {trip.members.map(m => <Avatar member={m} />)}
                     <div className="w-10 h-10 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-gray-400 text-xs">
                         <Icons.ChevronLeft />
                     </div>

@@ -52,6 +52,8 @@ export enum AppView {
   TRIP_DETAIL = 'TRIP_DETAIL', // Holds the tab view
   MANAGE_MEMBERS = 'MANAGE_MEMBERS',
   GUEST_WELCOME = 'GUEST_WELCOME',
+  MANUAL_ENTRY = 'MANUAL_ENTRY', 
+  SCAN_RECEIPT = 'SCAN_RECEIPT'
 }
 
 export enum TripTab {

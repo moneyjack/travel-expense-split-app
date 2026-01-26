@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 import { TripProvider, useTripContext } from './src/context/TripContext'; // 引用我們之前寫的 Context
 import { AppView, TripTab } from './src/types';
 import { supabase } from './src/lib/supabase'; // 確保你有這個檔案
@@ -10,11 +10,16 @@ import { CreateTripView } from './src/components/views/CreateTrip';
 import { TripDashboard } from './src/components/views/TripDashboard';
 import { StatsView } from './src/components/views/StatsView';
 import { AddActionSheet } from './src/components/views/AddActionSheet';
+import { ConfirmReceiptView } from './src/components/views/ConfirmReceiptView'; // 引入新頁面
+import { TransactionDetailModal } from './src/components/views/TransactionDetailModal';
+import { ManualEntryView } from './src/components/views/ManualEntryView'; // ★ 新增這行
 import Login from './src/components/Login.tsx'; // 假設你有建立 Login 組件
 
 // --- 引入 UI 組件 ---
 import { Loading } from './src/components/ui/Loading';
 import { Button } from './src/components/ui/Button';
+import { processReceiptImage } from './services/openrouterService.ts'; // 引入你的服務
+import { uploadReceiptImage } from './src/lib/storage'; // 引入之前的上傳服務
 
 // 這是主要的內容顯示區，它需要被包在 TripProvider 裡面才能運作
 const MainContent = () => {
@@ -31,6 +36,14 @@ const MainContent = () => {
 
   const [session, setSession] = useState<Session | null>(null);
   const [showAddMenu, setShowAddMenu] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false); // 加入分析中的狀態
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [scanResult, setScanResult] = useState<{shopName: string, date: string, items: any[]} | null>(null);
+  const [scannedImage, setScannedImage] = useState<string>('');
+  
+  const [viewingExpense, setViewingExpense] = useState<any | null>(null);
+
   // 監聽 Supabase 登入狀態
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -58,7 +71,39 @@ const MainContent = () => {
   if (!session && appView !== AppView.GUEST_WELCOME) {
     return <Login />;
   }
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
+    try {
+      setIsAnalyzing(true);
+      setShowAddMenu(false); // 關閉選單
+
+      // A. 先上傳到 Supabase Storage (備份原圖)
+      console.log("Uploading to Supabase...");
+      const publicUrl = await uploadReceiptImage(file);
+      if (publicUrl) {
+        setScannedImage(publicUrl);
+        console.log("Image uploaded:", publicUrl);
+      }
+      // B. 呼叫 Gemini 分析 (這裡需要將 File 轉 Base64)
+      console.log("Analyzing with Gemini...");
+      const base64 = await fileToBase64(file);
+      const result = await processReceiptImage(base64);
+      
+      console.log("Analysis Result:", result);
+      setScanResult(result);
+      setAppView(AppView.SCAN_RECEIPT); // 切換到確認頁 (記得在 types.ts 補上這個 enum)
+
+    } catch (error: any) {
+      console.error(error);
+      alert("處理失敗: " + error.message);
+    } finally {
+      setIsAnalyzing(false);
+      // 清空 input 讓使用者可以重複選同一張圖
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
   // 3. 路由判斷 (Router)
   return (
     <div className="min-h-screen bg-background text-gray-900 font-sans">
@@ -101,7 +146,7 @@ const MainContent = () => {
                   trip={activeTrip}
                   onViewExpense={(expense) => {
                     console.log("View Expense", expense);
-                    // 這裡觸發打開 Modal 的狀態 (建議 Modal 也放在 Context 或這裡管理)
+                   setViewingExpense(expense); // <--- 加這行
                   }}
                   onNavigateTripList={() => setAppView(AppView.TRIP_LIST)}
                   onShowShareModal={() => {}}
@@ -111,8 +156,7 @@ const MainContent = () => {
                 <StatsView 
                   trip={activeTrip} 
                   currentUserId={session?.user.id || ''}
-                  // 這裡需要 Context 提供計算好的 stats，或者在 View 裡面算
-                  stats={{ debts: [], spending: {} }} 
+                
                 />
               )}
             </div>
@@ -140,27 +184,73 @@ const MainContent = () => {
             </div>
           </>
         )}
+
+        {appView === AppView.SCAN_RECEIPT && (
+          <ConfirmReceiptView 
+            scanResult={scanResult}
+            receiptUrl={scannedImage}
+            onCancel={() => setAppView(AppView.TRIP_DETAIL)}
+          />
+        )}
+        {appView === AppView.MANUAL_ENTRY && (
+          <ManualEntryView 
+            onCancel={() => setAppView(AppView.TRIP_DETAIL)}
+          />
+        )}
+        <input 
+         type="file" 
+         ref={fileInputRef} 
+         className="hidden" 
+         accept="image/*" // 限制只能選圖片
+         capture="environment" // 手機上優先開啟後置相機
+         onChange={handleFileChange}
+       />
+
         {/* ★ 3. 放入選單組件 */}
-        <AddActionSheet 
+       <AddActionSheet 
           isOpen={showAddMenu}
           onClose={() => setShowAddMenu(false)}
           onScan={() => {
-            setShowAddMenu(false);
-            console.log("打開相機邏輯...");
-            // 這裡之後接：呼叫手機相機 / 檔案選擇器
+            fileInputRef.current?.click();
           }}
           onManual={() => {
             setShowAddMenu(false);
-            // 切換到「手動輸入」頁面 (如果不確定有沒有 MANUAL_ENTRY，可以用 alert 測試)
-            // setAppView(AppView.MANUAL_ENTRY); 
-            console.log("切換到手動輸入...");
+            setAppView(AppView.MANUAL_ENTRY); // 確保你有定義這個 Enum
           }}
+       />
+
+       {/* 簡單的 Loading 遮罩 */}
+       {isAnalyzing && (
+         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center text-white flex-col gap-4">
+           <Loading />
+           <p className="font-bold">AI 正在努力看收據...</p>
+         </div>
+       )}
+
+       {viewingExpense && (
+        <TransactionDetailModal 
+          expense={viewingExpense}
+          onClose={() => setViewingExpense(null)} 
         />
+      )}
       </main>
     </div>
   );
 };
 
+const fileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      // 移除 "data:image/jpeg;base64," 前綴，因為 Google SDK 有時只需要後半段
+      const base64Clean = result.split(',')[1]; 
+      resolve(base64Clean);
+    };
+    reader.onerror = error => reject(error);
+  });
+};
 // App 的外殼只負責提供 Context
 export default function App() {
   return (

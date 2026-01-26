@@ -24,6 +24,7 @@ export interface Expense {
   totalAmount: number;
   isParsed?: boolean;
   receiptImageUrl?: string;
+    is_settled?: boolean; // 新增此欄位以標記是否已結清
 }
 
 export interface Trip {
@@ -53,6 +54,8 @@ export enum AppView {
   TRIP_DETAIL = 'TRIP_DETAIL', // Holds the tab view
   MANAGE_MEMBERS = 'MANAGE_MEMBERS',
   GUEST_WELCOME = 'GUEST_WELCOME',
+  MANUAL_ENTRY = 'MANUAL_ENTRY', 
+  SCAN_RECEIPT = 'SCAN_RECEIPT'
 }
 
 export enum TripTab {
