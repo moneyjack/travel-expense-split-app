@@ -36,7 +36,7 @@ interface TransactionDetailModalProps {
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ expense, onClose }) => {
   // ★ 1. 引入 toggleExpenseSettled
-  const { trips, activeTripId, updateExpense, deleteExpense, toggleExpenseSettled, loading } = useTripContext();
+  const { trips, activeTripId, updateExpense, deleteExpense, toggleExpenseSettled, loading, isHost} = useTripContext();
   const activeTrip = trips.find(t => t.id === activeTripId);
   const members = activeTrip?.members || [];
 
@@ -386,12 +386,19 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
 
            {isEditing && (
              <div className="pt-6 border-t border-gray-100 mt-4">
+              {isHost ? (
                 <button 
                   onClick={handleDeleteExpense}
                   className="w-full py-4 text-red-500 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex items-center justify-center gap-2 transition-colors"
                 >
                   <Icons.Trash /> Delete Expense
                 </button>
+              ):
+              (
+                <p className="text-center text-xs text-gray-400">
+                  Only the host can delete expenses.
+                </p>
+              )}
              </div>
            )}
 

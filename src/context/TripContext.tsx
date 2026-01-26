@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { Trip, AppView, TripTab, Member } from '../types';
 import { supabase } from '../lib/supabase'; // 確保路徑正確
 import { Session } from '@supabase/supabase-js';
@@ -17,6 +17,7 @@ interface TripContextType {
     activeTripId: string | null;
     setActiveTripId: (id: string | null) => void;
 
+    isHost: boolean;
     updateTripName: (tripId: string, name: string) => Promise<void>;
     updateMember: (memberId: string, updates: { name?: string; avatar?: string; color?: string }) => Promise<void>;
     deleteTrip: (tripId: string) => Promise<void>;
@@ -49,7 +50,22 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [activeTripId, setActiveTripId] = useState<string | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string>('');
+    const [user, setUser] = useState<User | null>(null);
+    
+    const isHost = useMemo(() => {
+        if (!user || !activeTripId || trips.length === 0) return false;
+        const currentTrip = trips.find(t => t.id === activeTripId);
+        if (!currentTrip) return false;
 
+        // 方法 A: 檢查 created_by (如果你有這個欄位)
+        if (currentTrip.created_by === user.id) return true;
+
+        // 方法 B: 檢查 trip_members 表裡的 is_host (如果你是用這個)
+        // 假設你的 members 陣列裡有 user_id 欄位
+        const myMemberProfile = currentTrip.members.find((m: any) => m.user_id === user.id);
+        return myMemberProfile?.is_host === true;
+    }, [user, activeTripId, trips]);
+    
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);

@@ -30,7 +30,7 @@ const Icons = {
 };
 
 export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => void }) => {
-  const { updateTripName, updateMember, deleteTrip, addMember, removeMember } = useTripContext();
+  const { updateTripName, updateMember, deleteTrip, addMember, removeMember, isHost } = useTripContext();
   
   // Tab 狀態: 'general' | 'members'
   const [activeTab, setActiveTab] = useState('general');
@@ -44,7 +44,6 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
 
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [newMemberName, setNewMemberName] = useState('');
-
   // 1. 儲存旅程名稱
   const handleSaveTrip = async () => {
     if (!tripName.trim()) return alert('Name cannot be empty');
@@ -196,13 +195,15 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                     <li>You can change the base currency (Coming Soon).</li>
                   </ul>
                </div>
-
+              {isHost && (
                <div className="pt-8 border-t border-gray-100">
                   <button onClick={() => deleteTrip(trip.id)} className="w-full py-4 text-red-500 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex items-center justify-center gap-2">
                     <Icons.Trash /> Delete Trip
                   </button>
                   <p className="text-center text-xs text-gray-300 mt-2">This action cannot be undone.</p>
+               
                </div>
+                )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -225,16 +226,20 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                     </button>
                     
                     {/* ★ 刪除按鈕 */}
-                    <button 
-                        onClick={() => removeMember(trip.id, m.id)}
-                        className="p-3 bg-red-50 text-red-400 rounded-2xl hover:bg-red-100 hover:text-red-500 transition-colors"
-                        title="Remove Member"
-                    >
-                        <Icons.Trash />
-                    </button>
+                    {isHost && (
+                      <button 
+                          onClick={() => removeMember(trip.id, m.id)}
+                          className="p-3 bg-red-50 text-red-400 rounded-2xl hover:bg-red-100 hover:text-red-500 transition-colors"
+                          title="Remove Member"
+                      >
+                          <Icons.Trash />
+                      </button>
+                    )}
                 </div>
               ))}
-              {isAddingMember ? (
+              
+              {isHost && (
+                isAddingMember ? (
                   <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 animate-in zoom-in-95">
                       <label className="text-xs font-bold text-indigo-400 uppercase mb-2 block">New Member Name</label>
                       <div className="flex gap-2">
@@ -256,8 +261,8 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                   >
                       <span className="text-xl">+</span> Add New Member
                   </button>
-              )}
-
+              )
+            )}
             
             </div>
           )}
