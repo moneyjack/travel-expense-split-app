@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase'; // 請確認你的 supabase路徑
 import { Button } from './ui/Button'; // 假設你有這個 Button 組件
+import { LanguageSwitcher } from './ui/LanguageSwitcher'; // 引入
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -60,6 +61,10 @@ const Login = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 animate-in fade-in">
+      <div className="absolute top-6 right-6">
+        <LanguageSwitcher />
+      </div>
+
       <div className="bg-white w-full max-w-sm rounded-3xl shadow-xl p-8">
         
         {/* Logo or Icon */}

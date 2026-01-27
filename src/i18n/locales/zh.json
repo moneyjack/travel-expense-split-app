@@ -1,0 +1,88 @@
+{
+  "join": {
+    "loading_details": "正在載入旅程詳情...",
+    "title": "加入 \"{{name}}\"",
+    "question": "你是這趟旅程中的哪位成員？",
+    "no_slots_title": "沒有空的欄位？",
+    "no_slots_desc": "如果你已經是成員，請點擊下方登入。",
+    "tap_to_claim": "點擊認領",
+    "already_member": "已經是成員？點擊登入",
+    "go_home": "回首頁",
+    "modal": {
+      "enter_code": "輸入驗證碼",
+      "login_signup": "登入 / 註冊",
+      "claim_hint": "為了認領 <1>{{name}}</1>，請先驗證你的 Email。",
+      "login_hint": "登入以訪問你的旅程儀表板。",
+      "email_label": "電子郵件地址",
+      "code_label": "8 位驗證碼",
+      "send_code": "發送驗證碼",
+      "sending": "發送中...",
+      "verify": "驗證並登入",
+      "verifying": "驗證中...",
+      "change_email": "← 修改 Email",
+      "confirm_claim": "確認你就是 \"{{name}}\" 嗎？"
+    },
+    "alerts": {
+      "enter_email": "請輸入 Email",
+      "code_sent": "驗證碼已發送到你的信箱！",
+      "enter_code": "請輸入驗證碼",
+      "auth_failed": "驗證碼無效或已過期，請重試。",
+      "join_failed": "加入失敗: "
+    }
+},
+"home": {
+    "title": "我的旅程",
+    "subtitle": "輕鬆分帳，旅行無憂！",
+    "create_trip": "建立新旅程",
+    "logout_confirm": "你確定要登出嗎？",
+    "no_trips": "目前還沒有旅程。",
+    "host_badge": "主辦人",
+    "receipts_count": "{{count}} 張收據",
+    "logout_tooltip": "登出"
+  },
+  "dashboard": {
+    "back_to_trips": "我的旅程",
+    "total_expenses": "總支出",
+    "me_badge": "我",
+    "receipts_count": "{{count}} 張收據",
+    "recent_transactions": "最近交易",
+    "no_receipts": "尚無收據",
+    "date_labels": {
+      "today": "今天",
+      "yesterday": "昨天"
+    },
+    "expense": {
+      "settled": "已結清",
+      "paid_by": "由 {{name}} 支付",
+      "unknown_payer": "未知"
+    }
+  },
+  "transaction": {
+    "title_placeholder": "商店名稱",
+    "date": "日期",
+    "paid_by": "付款人",
+    "settled": "已結清",
+    "view_receipt": "查看收據",
+    "breakdown": "費用明細",
+    "add_item": "新增品項",
+    "item_name": "品項名稱",
+    "member_shares": "成員分擔",
+    "total": "總計",
+    "everyone": "所有人",
+    "unassigned": "未分配",
+    "delete_expense": "刪除此筆帳目",
+    "host_only_delete": "只有房主可以刪除帳目。",
+    "edit": "編輯",
+    "save": "儲存",
+    "tooltips": {
+      "mark_settled": "標記為已結清",
+      "mark_unsettled": "標記為未結清"
+    },
+    "alerts": {
+      "delete_confirm": "你確定要刪除整筆帳目嗎？此動作無法復原。",
+      "settle_confirm": "你想將此帳目設為「已結清」嗎？",
+      "unsettle_confirm": "你想將此帳目重新設為「未結清」嗎？",
+      "remove_item": "移除此品項？"
+    }
+  }
+}

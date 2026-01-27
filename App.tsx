@@ -4,6 +4,7 @@ import { TripProvider, useTripContext } from './src/context/TripContext'; // 引
 import { AppView, TripTab } from './src/types';
 import { supabase } from './src/lib/supabase'; // 確保你有這個檔案
 import { Session } from '@supabase/supabase-js';
+import './src/i18n/config'; // ★★★ 加入這一行 ★★★
 
 // --- 引入分拆出去的頁面組件 ---
 import { TripList } from './src/components/views/TripList';

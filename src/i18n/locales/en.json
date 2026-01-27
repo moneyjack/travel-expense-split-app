@@ -1,0 +1,88 @@
+{
+  "join": {
+    "loading_details": "Loading trip details...",
+    "title": "Join \"{{name}}\"",
+    "question": "Who are you in this trip?",
+    "no_slots_title": "No empty slots?",
+    "no_slots_desc": "If you are already a member, please log in below.",
+    "tap_to_claim": "Tap to claim",
+    "already_member": "Already a member? Log In",
+    "go_home": "Go to Home",
+    "modal": {
+      "enter_code": "Enter Verification Code",
+      "login_signup": "Login / Sign Up",
+      "claim_hint": "To claim <1>{{name}}</1>, please verify your email.",
+      "login_hint": "Log in to access your trip dashboard.",
+      "email_label": "Email Address",
+      "code_label": "8-Digit Code",
+      "send_code": "Send Code",
+      "sending": "Sending...",
+      "verify": "Login",
+      "verifying": "Verifying...",
+      "change_email": "← Change Email",
+      "confirm_claim": "Confirm that you are \"{{name}}\"?"
+    },
+    "alerts": {
+      "enter_email": "Please enter email",
+      "code_sent": "Verification code sent to your email!",
+      "enter_code": "Please enter the code",
+      "auth_failed": "Invalid code or expired. Please try again.",
+      "join_failed": "Join failed: "
+    }
+  },
+  "home": {
+    "title": "My Trips",
+    "subtitle": "Let's split the bills!",
+    "create_trip": "Create New Trip",
+    "logout_confirm": "Are you sure you want to log out?",
+    "no_trips": "No trips yet.",
+    "host_badge": "HOST",
+    "receipts_count": "{{count}} receipts",
+    "logout_tooltip": "Log Out"
+  },
+  "dashboard": {
+    "back_to_trips": "My Trips",
+    "total_expenses": "Total Expenses",
+    "me_badge": "Me",
+    "receipts_count": "{{count}} Receipts",
+    "recent_transactions": "Recent Transactions",
+    "no_receipts": "No receipts yet",
+    "date_labels": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "expense": {
+      "settled": "Settled",
+      "paid_by": "Paid by {{name}}",
+      "unknown_payer": "Unknown"
+    }
+  },
+  "transaction": {
+    "title_placeholder": "Shop Name",
+    "date": "Date",
+    "paid_by": "Paid By",
+    "settled": "Settled",
+    "view_receipt": "View",
+    "breakdown": "Breakdown",
+    "add_item": "Add Item",
+    "item_name": "Item Name",
+    "member_shares": "Member Shares",
+    "total": "Total",
+    "everyone": "Everyone",
+    "unassigned": "Unassigned",
+    "delete_expense": "Delete Expense",
+    "host_only_delete": "Only the host can delete expenses.",
+    "edit": "Edit",
+    "save": "Save",
+    "tooltips": {
+      "mark_settled": "Mark as Settled",
+      "mark_unsettled": "Mark as Unsettled"
+    },
+    "alerts": {
+      "delete_confirm": "Are you sure you want to delete this entire expense? This action cannot be undone.",
+      "settle_confirm": "Do you want to settle this expense?",
+      "unsettle_confirm": "Do you want to re-open (unsettle) this expense?",
+      "remove_item": "Remove this item?"
+    }
+  }
+}
