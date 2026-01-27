@@ -205,7 +205,6 @@ const MainContent = () => {
          ref={fileInputRef} 
          className="hidden" 
          accept="image/jpeg, image/png" // 限制只能選圖片
-         capture="environment" // 手機上優先開啟後置相機
          onChange={handleFileChange}
        />
 
