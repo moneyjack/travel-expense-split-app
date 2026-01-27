@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
-// Icon 元件
+
+// Icon 元件 (新增 Zoom In/Out Icon)
 const Icons = {
   Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-400"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
   Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>,
-  Users: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-
+  Users: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
+  // ★ 新增放大鏡 Icon
+  Zoom: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>,
+  Close: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 };
 
 interface ConfirmReceiptViewProps {
-  // 注意：這裡接收的資料結構變了，包含 metadata
   scanResult: { shopName: string; date: string; items: any[] }; 
   receiptUrl?: string;
   onCancel: () => void;
@@ -28,6 +30,9 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
   const activeTrip = trips.find(t => t.id === activeTripId);
   const members = activeTrip?.members || [];
 
+  // ★ 新增：控制全螢幕圖片的 State
+  const [isImageZoomed, setIsImageZoomed] = useState(false);
+
   // State 初始化
   const [shopName, setShopName] = useState(scanResult.shopName || 'Restaurant');
   const [date, setDate] = useState(scanResult.date || new Date().toISOString().split('T')[0]);
@@ -40,22 +45,19 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
     }))
   );
   
-  // 預設 payer
   const [payerId, setPayerId] = useState<string>(members.find(m => m.isHost)?.id || members[0]?.id || '');
 
-  // 更新項目
+  // ... (原本的 updateItem, addItem, deleteItem, toggleMemberForItem, handleSplitAll, handleSave 邏輯保持不變) ...
   const updateItem = (index: number, field: keyof EditingItem, value: any) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
     setItems(newItems);
   };
 
-  // ★ 新增項目
   const addItem = () => {
     setItems([...items, { name: 'New Item', quantity: 1, price: 0, assignedTo: [] }]);
   };
 
-  // ★ 刪除項目
   const deleteItem = (index: number) => {
     if (confirm('Delete this item?')) {
       const newItems = items.filter((_, i) => i !== index);
@@ -63,7 +65,6 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
     }
   };
 
-  // 切換分帳成員
   const toggleMemberForItem = (itemIndex: number, memberId: string) => {
     const newItems = [...items];
     const current = newItems[itemIndex].assignedTo;
@@ -74,18 +75,16 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
     }
     setItems(newItems);
   };
+  
   const handleSplitAll = (index: number) => {
     const newItems = [...items];
-    // 直接將 assignedTo 設為所有成員 ID
     newItems[index].assignedTo = members.map(m => m.id);
     setItems(newItems);
   };
+
   const handleSave = async () => {
-    // 這裡我們之後可能要把 Date 也傳給 createExpense，目前先傳標題
-    // 建議將 shopName 和 Date 合併成 Title，或者修改 createExpense 支援 date 參數
     const finalTitle = `${shopName}`; 
     await createExpense(finalTitle, payerId, items, receiptUrl, date); 
-    // TODO: 如果你想把 date 存入資料庫，記得去 TripContext 的 createExpense 增加 date 參數
   };
 
   const grandTotal = items.reduce((sum, item) => sum + Number(item.price), 0);
@@ -101,12 +100,34 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
         </button>
       </div>
 
-      {/* 1. 店名、日期、付款人 */}
+      {/* 1. 店名、日期、付款人 & 圖片縮圖 */}
       <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 space-y-4">
+         
+         {/* ★ 修改圖片區域：變成可點擊的縮圖 */}
          {receiptUrl && (
-            <img src={receiptUrl} className="w-full h-32 object-cover rounded-xl opacity-90 mb-2" />
+            <div 
+              className="relative group cursor-pointer overflow-hidden rounded-xl mb-2"
+              onClick={() => setIsImageZoomed(true)} // 點擊打開大圖
+            >
+              <img 
+                src={receiptUrl} 
+                className="w-full h-32 object-cover opacity-90 transition-transform group-hover:scale-105" 
+                alt="Receipt Thumbnail"
+              />
+              {/* 覆蓋層：提示可以放大 */}
+              <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                 <span className="text-white font-bold flex items-center gap-2 bg-black/50 px-3 py-1 rounded-full text-xs">
+                    <Icons.Zoom /> View Full Image
+                 </span>
+              </div>
+              {/* 手機版常駐提示小圖示 */}
+              <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full md:hidden">
+                 <Icons.Zoom /> 
+              </div>
+            </div>
          )}
          
+         {/* ... (原本的輸入欄位保持不變) ... */}
          <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
               <label className="text-[10px] text-gray-400 font-bold uppercase">Shop Name</label>
@@ -146,12 +167,10 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
          </div>
       </div>
 
-      {/* 2. 項目列表 */}
+      {/* 2. 項目列表 (保持不變) */}
       <div className="space-y-3">
         {items.map((item, idx) => (
           <div key={idx} className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 relative group">
-            
-            {/* 刪除按鈕 (右上角) */}
             <button 
               onClick={() => deleteItem(idx)}
               className="absolute top-2 right-2 p-2 bg-gray-50 rounded-full hover:bg-red-50 transition-colors"
@@ -159,7 +178,6 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
               <Icons.Trash />
             </button>
 
-            {/* 第一行：輸入欄位 */}
             <div className="flex gap-2 items-start mb-3 pr-8">
               <div className="w-10">
                  <label className="text-[9px] text-gray-400 font-bold uppercase text-center block">Qty</label>
@@ -189,25 +207,18 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
               </div>
             </div>
 
-            {/* 第二行：分帳選擇 */}
             <div className="flex gap-2 overflow-x-auto no-scrollbar py-2 border-t border-gray-50 mt-2 items-center">
-               
-               {/* ★ 1. 新增：All 按鈕 */}
                <button
                   onClick={() => handleSplitAll(idx)}
                   className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all shrink-0 ${
                     item.assignedTo.length === members.length 
-                      ? 'bg-indigo-50 text-primary border-indigo-100' // 全選狀態
+                      ? 'bg-indigo-50 text-primary border-indigo-100' 
                       : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                   }`}
                >
                   <Icons.Users /> All
                </button>
-               
-               {/* 分隔線 */}
                <div className="w-[1px] h-5 bg-gray-100 shrink-0"></div>
-
-               {/* ★ 2. 原本的成員列表 (保持不變) */}
                {members.map(member => {
                  const isSelected = item.assignedTo.includes(member.id);
                  return (
@@ -229,8 +240,6 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                    </button>
                  );
                })}
-               
-               {/* 顯示選取人數 */}
                <div className="flex items-center ml-auto pl-2 border-l border-gray-100">
                  <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
                    {item.assignedTo.length === 0 ? 'Nobody' : `${item.assignedTo.length}/${members.length}`}
@@ -251,6 +260,34 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
           {loading ? 'Saving...' : 'Confirm Receipt'}
         </Button>
       </div>
+
+      {/* ★ 新增：全螢幕圖片檢視 Modal */}
+      {isImageZoomed && receiptUrl && (
+        <div className="fixed inset-0 z-[60] bg-black flex flex-col animate-in fade-in duration-200">
+          {/* Top Bar with Close Button */}
+          <div className="flex justify-between items-center p-4 bg-black/50 backdrop-blur-sm absolute top-0 left-0 right-0 z-10">
+            <span className="text-white font-bold text-sm">Receipt Image</span>
+            <button 
+              onClick={() => setIsImageZoomed(false)}
+              className="p-2 bg-white/20 rounded-full text-white hover:bg-white/30 backdrop-blur-md"
+            >
+              <Icons.Close />
+            </button>
+          </div>
+
+          {/* Image Container (Scrollable) */}
+          <div className="flex-1 overflow-auto flex items-center justify-center p-2 pt-16 pb-safe">
+             {/* 使用 w-full 讓它寬度撐滿，h-auto 保持比例，這樣長收據可以上下滑動 */}
+             <img 
+               src={receiptUrl} 
+               className="w-full h-auto max-w-none shadow-2xl" 
+               style={{ minHeight: '50%' }} // 防止圖片太小時縮得看不見
+               alt="Full Receipt" 
+             />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
