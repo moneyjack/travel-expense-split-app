@@ -74,7 +74,7 @@ const Login = () => {
           <p className="text-gray-500 text-sm mt-2">
             {step === 'email' 
               ? 'Enter your email to sign in or create an account.' 
-              : `We've sent a 6-digit code to ${email}`}
+              : `We've sent a 8-digit code to ${email}`}
           </p>
         </div>
 
@@ -104,11 +104,11 @@ const Login = () => {
               <input 
                 type="text" 
                 inputMode="numeric"
-                maxLength={6}
+                maxLength={8}
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 className="w-full p-4 bg-gray-50 rounded-2xl border-2 border-transparent focus:bg-white focus:border-primary outline-none transition-all text-center text-3xl tracking-[0.5em] font-bold text-gray-800"
-                placeholder="000000"
+                placeholder="00000000"
                 autoFocus
               />
             </div>
