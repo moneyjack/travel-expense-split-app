@@ -24,6 +24,9 @@ import { Button } from './src/components/ui/Button';
 import { processReceiptImage } from './services/openrouterService.ts'; // 引入你的服務
 import { uploadReceiptImage } from './src/lib/storage'; // 引入之前的上傳服務
 
+import { compressImage } from './src/utils/compressor';
+
+
 // 這是主要的內容顯示區，它需要被包在 TripProvider 裡面才能運作
 const MainContent = () => {
   const { 
@@ -82,16 +85,19 @@ const MainContent = () => {
       setIsAnalyzing(true);
       setShowAddMenu(false); // 關閉選單
       // A. 先上傳到 Supabase Storage (備份原圖)
+      console.log("Compressing image...");
+      const compressedFile = await compressImage(file);
+
       console.log("Uploading to Supabase...");
       
-      const publicUrl = await uploadReceiptImage(file);
+      const publicUrl = await uploadReceiptImage(compressedFile);
       if (publicUrl) {
         setScannedImage(publicUrl);
         console.log("Image uploaded:", publicUrl);
       }
       // B. 呼叫 Gemini 分析 (這裡需要將 File 轉 Base64)
       console.log("Analyzing with Gemini...");
-      const base64 = await fileToBase64(file);
+      const base64 = await fileToBase64(compressedFile);
       const result = await processReceiptImage(base64);
 
       console.log("Analysis Result:", result);
