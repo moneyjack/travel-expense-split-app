@@ -124,7 +124,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
     <div className="space-y-8 pb-24 animate-in fade-in">
       
       {/* 1. 結算按鈕 */}
-      {hasUnsettled && (
+      {/* {hasUnsettled && (
         <div className="bg-indigo-50 p-4 rounded-3xl flex justify-between items-center border border-indigo-100">
             <div>
                 <h3 className="font-bold text-indigo-900">Outstanding Balance</h3>
@@ -138,7 +138,7 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
                 <Icons.CheckCircle /> Settle All
             </button>
         </div>
-      )}
+      )} */}
 
       {/* 2. 花費圖表 */}
       <section className="bg-white p-6 rounded-3xl shadow-sm">

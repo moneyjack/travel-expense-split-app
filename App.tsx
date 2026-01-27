@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef} from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { TripProvider, useTripContext } from './src/context/TripContext'; // 引用我們之前寫的 Context
 import { AppView, TripTab } from './src/types';
 import { supabase } from './src/lib/supabase'; // 確保你有這個檔案
@@ -13,6 +14,7 @@ import { AddActionSheet } from './src/components/views/AddActionSheet';
 import { ConfirmReceiptView } from './src/components/views/ConfirmReceiptView'; // 引入新頁面
 import { TransactionDetailModal } from './src/components/views/TransactionDetailModal';
 import { ManualEntryView } from './src/components/views/ManualEntryView'; // ★ 新增這行
+import { JoinTripView } from './src/components/views/JoinTripView'
 import Login from './src/components/Login.tsx'; // 假設你有建立 Login 組件
 
 
@@ -255,8 +257,20 @@ const fileToBase64 = (file: File): Promise<string> => {
 // App 的外殼只負責提供 Context
 export default function App() {
   return (
-    <TripProvider>
-      <MainContent />
-    </TripProvider>
+    <BrowserRouter>
+      <TripProvider>
+        <Routes>
+          {/* ★ 關鍵路由：當網址是 /join/xxxx 時，顯示 JoinTripView 
+             這就是為什麼你的分享連結會生效！
+          */}
+          <Route path="/join/:tripId" element={<JoinTripView />} />
+
+          {/* 預設路由：其他所有網址 (/*) 都顯示原本的主程式 MainContent
+             這樣你原本的 Dashboard、Stats 都不會壞掉
+          */}
+          <Route path="/*" element={<MainContent />} />
+        </Routes>
+      </TripProvider>
+    </BrowserRouter>
   );
 }

@@ -38,6 +38,8 @@ interface TripContextType {
     toggleExpenseSettled: (expenseId: string, currentStatus: boolean) => Promise<void>;
     settleAllExpenses: (tripId: string) => Promise<void>;
 
+    joinTripAsMember: (memberId: string) => Promise<void>; // ★ 新增：認領功能
+
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
@@ -69,11 +71,13 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
+            setUser(session?.user ?? null);
             if (session) setCurrentUserId(session.user.id);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            setUser(session?.user ?? null);
             if (session) setCurrentUserId(session.user.id);
         });
 
@@ -82,20 +86,23 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // ★ 1. Fetch Trips (關鍵修正：資料對應 Mapping)
     const fetchTrips = async () => {
-        // if (!session) return; 
+        if (!user) return;
+        console.log("User:", user);
         setLoading(true);
         try {
             const { data, error } = await supabase
-                .from('trips')
-                .select(`
-          *,
-          trip_members (*),
-          expenses (
+            .from('trips')
+            .select(`
             *,
-            expense_items (*) 
-          )
-        `)
-                .order('created_at', { ascending: false });
+            trip_members!inner (user_id), 
+            members:trip_members (*),
+            expenses (
+                    *,
+                    expense_items (*)
+                )
+            `)
+            .eq('trip_members.user_id', user.id);
+
             if (error) throw error;
 
             if (data) {
@@ -105,12 +112,14 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     name: t.name,
                     date: t.created_at,
                     currency: t.currency || 'HKD', // ★ 新增這行
-                    members: t.trip_members.map((m: any) => ({
+                    created_by: t.created_by,
+                    members: t.members.map((m: any) => ({
                         id: m.id,
                         name: m.name,
                         avatar: m.avatar,
                         color: m.color,
-                        isHost: m.is_host
+                        is_host: m.is_host,
+                        user_id: m.user_id 
                     })),
                     // ★ 修正 Expenses 的 Mapping
                     expenses: (t.expenses || []).map((e: any) => ({
@@ -239,8 +248,16 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     useEffect(() => {
-        fetchTrips();
-    }, [session]);
+        // 為了 debug 還是可以印出來，但現在它應該只會印 1-2 次
+        console.log("User changed (ID check):", user?.id);
+
+        if (user?.id) {
+            fetchTrips();
+        } else {
+            setTrips([]); // 登出時清空
+        }
+    // ★ 關鍵：只監聽 ID 字串，如果不一樣才重抓
+    }, [user?.id]);
 
     // ★ 新增：更新收據功能 (支援改標題、金額、細項分配)
     const updateExpense = async (expenseId: string, updates: Partial<any>, items?: any[]) => {
@@ -406,6 +423,28 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setLoading(false);
         }
     };
+
+    const joinTripAsMember = async (memberId: string) => {
+        if (!user) return;
+        setLoading(true);
+        try {
+            // 更新該成員，把 user_id 填進去 (綁定)
+            const { error } = await supabase
+                .from('trip_members')
+                .update({ user_id: user.id })
+                .eq('id', memberId); // 根據成員 ID (UUID) 更新
+
+            if (error) throw error;
+            
+            // 綁定成功後，重新抓取旅程，這樣 Dashboard 就會出現這趟旅程了
+            await fetchTrips(); 
+        } catch (e: any) {
+            alert('Join failed: ' + e.message);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
+    };
     // 3. 刪除旅程 (危險操作)
     const deleteTrip = async (tripId: string) => {
         if (!confirm('Are you sure you want to delete this trip? This cannot be undone.')) return;
@@ -462,7 +501,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         appView, setAppView, activeTripTab, setActiveTripTab, loading,
         trips, setTrips, activeTripId, setActiveTripId, session, currentUserId, setCurrentUserId,
         fetchTrips, createTrip, createExpense, updateExpense, updateTripName, updateMember, deleteTrip, deleteExpense
-        , toggleExpenseSettled, settleAllExpenses, addMember, removeMember
+        , toggleExpenseSettled, settleAllExpenses, addMember, removeMember, joinTripAsMember, isHost
     };
 
     return <TripContext.Provider value={value}>{children}</TripContext.Provider>;
