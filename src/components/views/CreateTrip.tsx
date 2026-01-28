@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Member } from '../../types'; // 請確認這路徑是對的
-import { Button } from '../ui/Button';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTripContext } from '../../context/TripContext';
-import { CURRENCIES } from '../../utils/currency'; // ★ 引入工具
-import { useTranslation } from 'react-i18next'
+import { CURRENCIES } from '../../utils/currency'; 
+import { useTranslation } from 'react-i18next';
+import { Button } from '../ui/Button';
 
 // --- Constants ---
 const AVATARS = [
@@ -24,16 +24,18 @@ const COLORS = [
 ];
 
 const Icons = {
-  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+  Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
   ChevronLeft: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>,
-  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
+  Trash: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
   Back: () => <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>,
+  Plane: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>,
+  Users: () => <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>,
+  X: () => <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>,
 };
 
 const getRandomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)];
 const getRandomAvatar = () => AVATARS[Math.floor(Math.random() * AVATARS.length)];
 
-// 定義成員介面
 interface TempMember {
   tempId: string;
   name: string;
@@ -41,64 +43,63 @@ interface TempMember {
   color: string;
 }
 
-// ★ 定義 Props 介面 (關鍵修復)
-interface MemberPillProps {
-  member: TempMember;
-  onClick: () => void;
-  onRemove?: () => void; // ★ 新增這一行
-  isHost?: boolean;
-}
-
-// ★ 使用 React.FC 明確定義組件類型 (關鍵修復)
-const MemberPill: React.FC<MemberPillProps> = ({ member, onClick, onRemove, isHost = false }) => {
+// ★ 改良版 MemberChip (膠囊樣式) 用於登機證上
+const MemberChip = ({ member, onClick, onRemove, isHost }: { member: TempMember, onClick: () => void, onRemove?: () => void, isHost?: boolean }) => {
   return (
-    <div
+    <motion.div
+      layout
+      initial={{ scale: 0.8, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      exit={{ scale: 0, opacity: 0 }}
       onClick={onClick}
-      // ★ 注意：這裡把 <button> 改成了 <div> 並加上 cursor-pointer，避免按鈕嵌套問題
-      className={`relative flex items-center gap-4 pl-2 pr-4 py-2 rounded-full border-2 transition-all hover:scale-[1.02] active:scale-95 group text-left cursor-pointer
-        ${isHost ? member.color.replace('bg-', '').replace('400', '50') : 'bg-gray-50'} 
-        ${isHost ? `border-${member.color.replace('bg-', '')}` : 'border-transparent hover:border-gray-200'}
+      className={`
+        relative flex items-center gap-2 pl-1 pr-3 py-1 rounded-full border cursor-pointer select-none transition-all hover:brightness-95
+        ${isHost 
+           ? 'bg-indigo-50 border-indigo-100 text-indigo-900' 
+           : 'bg-white border-gray-200 text-gray-700'
+        }
       `}
     >
       {/* 頭像 */}
-      <div className={`w-12 h-12 rounded-full ${member.color} flex items-center justify-center text-2xl shadow-sm border-2 border-white shrink-0`}>
+      <div className={`w-8 h-8 rounded-full ${member.color} flex items-center justify-center text-sm shadow-sm border border-white shrink-0`}>
           {member.avatar}
       </div>
       
-      {/* 名字與 Host 標籤 */}
-      <div className="flex flex-col flex-1 min-w-0">
-         <span className={`text-lg font-bold truncate ${isHost ? 'text-gray-900' : 'text-gray-700'}`}>{member.name}</span>
-         {isHost && <span className="text-[10px] font-bold uppercase tracking-wider opacity-60">Trip Host</span>}
-      </div>
-
-      {/* ★ 垃圾桶按鈕 (只在非 Host 時顯示) */}
-      {!isHost && onRemove && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation(); // ★ 關鍵！阻止點擊事件傳遞，避免觸發 onClick (編輯)
-            onRemove();
-          }}
-          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all ml-2"
-          aria-label="Remove member"
-        >
-          <Icons.Trash />
-        </button>
+      {/* 名字 */}
+      <span className="text-sm font-bold truncate max-w-[100px]">{member.name}</span>
+      
+      {/* Host 標籤或刪除按鈕 */}
+      {isHost ? (
+         <span className="text-[10px] font-bold uppercase tracking-wider opacity-60 bg-indigo-200 px-1 rounded">HOST</span>
+      ) : (
+        onRemove && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemove();
+            }}
+            className="w-5 h-5 rounded-full flex items-center justify-center hover:bg-red-100 text-gray-400 hover:text-red-500 transition-colors ml-1"
+          >
+            <Icons.X />
+          </button>
+        )
       )}
-    </div>
+    </motion.div>
   );
 };
+
 interface CreateTripViewProps {
   onCancel: () => void;
   onCreate?: (name: string, members: any[]) => void; 
 }
 
 export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
-  const { t } = useTranslation(); // ★ 初始化翻譯
+  const { t } = useTranslation();
   const { createTrip, loading } = useTripContext();
   
   const [newTripName, setNewTripName] = useState('');
-  const [currency, setCurrency] = useState('HKD'); // ★ 預設貨幣
-  // Host 狀態
+  const [currency, setCurrency] = useState('HKD');
+  
   const [hostDetails, setHostDetails] = useState<TempMember>({
     tempId: 'HOST',
     name: 'Me',
@@ -106,14 +107,11 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
     color: 'bg-primary'
   });
 
-  // 其他成員狀態
   const [newTripMembers, setNewTripMembers] = useState<TempMember[]>([]);
   const [newMemberName, setNewMemberName] = useState('');
 
   // 編輯 Modal 狀態
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
-  
-  // 編輯暫存
   const [editName, setEditName] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
   const [editColor, setEditColor] = useState('');
@@ -128,7 +126,7 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
         newTripMembers.some(m => m.name.toLowerCase() === name.toLowerCase());
     
     if (isDuplicate) {
-        alert('Member already exists!');
+        alert(t('create_trip.alerts.member_exists'));
         return;
     }
 
@@ -161,7 +159,7 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
     ) || (editingMemberId !== 'HOST' && editName.toLowerCase() === hostDetails.name.toLowerCase());
 
     if (isDuplicate) {
-        alert("Name already taken!");
+        alert(t('create_trip.alerts.duplicate_name'));
         return;
     }
 
@@ -188,126 +186,192 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
   const handleCreateTrip = async () => {
     if (!newTripName.trim()) return;
     
-    // 清理 ID
     const cleanMembers = newTripMembers.map(({ tempId, ...rest }) => rest);
     const { tempId, ...cleanHost } = hostDetails;
     
-    // 將 Host 合併到成員列表中
     const allMembers = [
         { ...cleanHost, is_host: true }, 
         ...cleanMembers
     ];
     
-    // 呼叫 Context 建立旅程
     await createTrip(newTripName, allMembers, currency);
-    
-    // ★★★ 新增這一行：建立完成後，切換回列表頁 ★★★
     onCancel();
   };
 
   return (
-    <div className="p-6 min-h-screen bg-white animate-in slide-in-from-bottom-10">
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-8">
-        <button onClick={onCancel} className="text-gray-400 p-2"><Icons.ChevronLeft /></button>
-        <h2 className="text-2xl font-bold">{t('create_trip.title')}</h2>
-      </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col relative overflow-hidden">
+      
+      {/* 背景裝飾：藍色光暈 */}
+      <div className="absolute top-[-10%] right-[-20%] w-96 h-96 bg-indigo-100 rounded-full blur-3xl opacity-60 pointer-events-none" />
+      <div className="absolute top-[20%] left-[-10%] w-64 h-64 bg-blue-100 rounded-full blur-3xl opacity-60 pointer-events-none" />
 
-      <div className="space-y-8">
-        {/* Trip Name */}
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">{t('create_trip.trip_name_label')}</label>
-          <input 
-            className="w-full text-lg p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold text-gray-800"
-            placeholder={t('create_trip.trip_name_placeholder')} // ★ i18n
-            value={newTripName}
-            onChange={e => setNewTripName(e.target.value)}
-            disabled={loading}
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">{t('create_trip.currency_label')}</label>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-             {CURRENCIES.map(c => (
-                <button
-                   key={c.code}
-                   onClick={() => setCurrency(c.code)}
-                   className={`flex items-center gap-1 px-4 py-2 rounded-xl border-2 transition-all shrink-0 ${currency === c.code ? 'border-primary bg-primary/5 text-primary' : 'border-gray-100 bg-white text-gray-400'}`}
-                >
-                   <span className="font-bold">{c.code}</span>
-                   <span className="text-xs opacity-60">({c.symbol})</span>
-                </button>
-             ))}
-          </div>
-        </div>
-        {/* Members Section */}
-        <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">{t('create_trip.who_is_going')}</label>
-          
-          {/* Add Input */}
-          <div className="flex gap-2 mb-6">
-            <input 
-              className="flex-1 p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary/20 transition-all text-lg font-bold text-gray-800"
-              placeholder={t('create_trip.friend_name_placeholder')} // ★ i18n
-              value={newMemberName}
-              onChange={e => setNewMemberName(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleAddMember()}
-            />
-            <Button onClick={handleAddMember} size="icon" className="rounded-2xl w-14 h-14"><Icons.Plus /></Button>
-          </div>
-          
-          {/* Members List */}
-          <div className="flex flex-col gap-3">
-            
-            <MemberPill 
-                key="HOST" 
-                member={hostDetails} 
-                onClick={() => openEditModal(hostDetails)} 
-                isHost={true} 
-            />
-
-            {newTripMembers.map(m => (
-              <MemberPill 
-                key={m.tempId} 
-                member={m} 
-                onClick={() => openEditModal(m)} 
-                onRemove={() => {
-                    if (confirm(t('create_trip.alerts.remove_confirm', { name: m.name }))) { // ★ i18n
-                        setNewTripMembers(prev => prev.filter(member => member.tempId !== m.tempId));
-                    }
-                }}
-              />
-            ))}
-          </div>
-          
-          {newTripMembers.length === 0 && (
-             <p className="text-center text-gray-400 mt-8 font-medium">{t('create_trip.add_hint')}</p>
-          )}
-        </div>
-      </div>
-
-      {/* Create Button */}
-      <div className="fixed bottom-6 left-6 right-6">
-        <Button 
-            onClick={handleCreateTrip} 
-            disabled={loading || !newTripName.trim()}
-            className="w-full py-6 text-xl font-bold rounded-2xl shadow-xl shadow-indigo-200"
+      {/* --- Top Navigation --- */}
+      <div className="px-6 pt-6 pb-2 z-10 flex items-center">
+        <button 
+          onClick={onCancel}
+          className="p-2 -ml-2 rounded-full hover:bg-black/5 text-gray-600 transition-colors"
         >
-          {loading ? t('create_trip.creating') : t('create_trip.create_btn')}
-        </Button>
+          <Icons.ChevronLeft />
+        </button>
+        <span className="ml-2 text-lg font-bold text-gray-900">{t('create_trip.title')}</span>
       </div>
 
-      {/* Edit Modal */}
+      {/* --- Main Content (Boarding Pass) --- */}
+      <div className="flex-1 px-6 pt-4 pb-12 overflow-y-auto">
+        <motion.div 
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          className="bg-white rounded-[2rem] shadow-xl shadow-indigo-100/50 border border-white overflow-hidden relative"
+        >
+          
+          {/* Header Strip */}
+          <div className="h-3 bg-gradient-to-r from-indigo-500 to-blue-500 w-full" />
+
+          <div className="p-6 space-y-8">
+            
+            {/* 1. Destination (Trip Name) */}
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">{t('create_trip.trip_name_label')}</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400 group-focus-within:text-primary transition-colors">
+                  <Icons.Plane />
+                </div>
+                <input
+                  type="text"
+                  value={newTripName}
+                  onChange={(e) => setNewTripName(e.target.value)}
+                  placeholder={t('create_trip.trip_name_placeholder') as string}
+                  className="block w-full pl-12 pr-4 py-4 bg-gray-50 border-0 rounded-2xl text-gray-900 font-bold text-lg placeholder:text-gray-300 placeholder:font-normal focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* 2. Currency (Horizontal Scroll) */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">{t('create_trip.currency_label')}</label>
+              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide -mx-2 px-2">
+                {CURRENCIES.map((curr) => (
+                  <button
+                    key={curr.code}
+                    onClick={() => setCurrency(curr.code)}
+                    className={`
+                      px-4 py-2 rounded-xl font-bold text-sm transition-all whitespace-nowrap border-2 flex flex-col items-center
+                      ${currency === curr.code 
+                        ? 'bg-primary text-white border-primary shadow-lg shadow-primary/30 scale-105' 
+                        : 'bg-white text-gray-500 border-gray-100 hover:border-gray-200'
+                      }
+                    `}
+                  >
+                    <span>{curr.code}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Passengers (Dynamic List) */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">
+                {t('create_trip.who_is_going')} ({newTripMembers.length + 1})
+              </label>
+              
+              {/* Add Member Input */}
+              <div className="flex gap-2 mb-4">
+                <div className="relative flex-1">
+                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
+                      <Icons.Users />
+                   </div>
+                   <input
+                    type="text"
+                    value={newMemberName}
+                    onChange={(e) => setNewMemberName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
+                    placeholder={t('create_trip.friend_name_placeholder') as string}
+                    className="block w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-xl text-gray-900 focus:ring-2 focus:ring-primary/20 focus:bg-white transition-all font-medium"
+                  />
+                </div>
+                <button 
+                  onClick={handleAddMember}
+                  disabled={!newMemberName.trim()}
+                  className="w-12 h-12 flex items-center justify-center bg-gray-900 text-white rounded-xl shadow-lg hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                >
+                  <Icons.Plus />
+                </button>
+              </div>
+
+              {/* Members List (Chips Layout) */}
+              <div className="flex flex-wrap gap-2">
+                <AnimatePresence>
+                  {/* Host Chip */}
+                  <MemberChip
+                     member={hostDetails}
+                     onClick={() => openEditModal(hostDetails)}
+                     isHost={true}
+                  />
+
+                  {/* Other Members */}
+                  {newTripMembers.map((m) => (
+                    <React.Fragment key={m.tempId}>
+                      <MemberChip
+                        member={m}
+                        onClick={() => openEditModal(m)}
+                        onRemove={() => {
+                          if (confirm(t('create_trip.alerts.remove_confirm', { name: m.name }))) {
+                              setNewTripMembers(prev => prev.filter(member => member.tempId !== m.tempId));
+                          }
+                        }}
+                      />
+                    </React.Fragment>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          </div>
+
+          {/* 虛線撕裂處 (Tear-off Line) */}
+          <div className="relative flex items-center justify-between px-2">
+            <div className="w-6 h-6 bg-gray-50 rounded-full -ml-3" /> {/* 左圓缺口 */}
+            <div className="flex-1 border-t-2 border-dashed border-gray-200" />
+            <div className="w-6 h-6 bg-gray-50 rounded-full -mr-3" /> {/* 右圓缺口 */}
+          </div>
+
+          {/* Bottom Action Section */}
+          <div className="p-6 bg-gray-50/50">
+             <div className="flex justify-between items-center text-sm text-gray-500 mb-6 px-1">
+                <span>Date</span>
+                <span className="font-bold text-gray-900">{new Date().toLocaleDateString()}</span>
+             </div>
+
+             <Button 
+               onClick={handleCreateTrip} 
+               disabled={loading || !newTripName.trim()}
+               className="w-full py-4 text-lg shadow-xl shadow-indigo-200 rounded-xl"
+             >
+               {loading ? t('create_trip.creating') : t('create_trip.create_trip')}
+             </Button>
+          </div>
+
+        </motion.div>
+      </div>
+
+      {/* Edit Modal (保持原有邏輯，美化樣式) */}
+      <AnimatePresence>
       {editingMemberId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEditingMemberId(null)} />
-            <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl relative z-10 flex flex-col max-h-[85vh] animate-in zoom-in-95 overflow-hidden">
-                
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm" 
+              onClick={() => setEditingMemberId(null)} 
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white w-full max-w-sm rounded-3xl shadow-2xl relative z-10 flex flex-col max-h-[85vh] overflow-hidden"
+            >
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
                     <button onClick={() => setEditingMemberId(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
                         <Icons.Back />
                     </button>
-                    {/* ★ i18n */}
                     <h3 className="font-bold text-lg">{editingMemberId === 'HOST' ? t('create_trip.edit_profile') : t('create_trip.edit_friend')}</h3>
                     <button onClick={saveMemberEdit} className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-full">
                         {t('create_trip.done')}
@@ -323,7 +387,7 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
                             value={editName}
                             onChange={e => setEditName(e.target.value)}
                             className="text-center text-2xl font-bold border-b-2 border-gray-100 focus:border-primary outline-none w-full pb-2"
-                            placeholder={t('create_trip.friend_name_placeholder')} // ★ i18n
+                            placeholder={t('create_trip.friend_name_placeholder') as string}
                         />
                     </div>
 
@@ -366,9 +430,10 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
                       </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
         </div>
       )}
+      </AnimatePresence>
     </div>
   );
 };

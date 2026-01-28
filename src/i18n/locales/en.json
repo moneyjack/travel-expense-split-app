@@ -144,7 +144,8 @@
     "alerts": {
       "name_empty": "Name cannot be empty",
       "name_taken": "This name is already taken. Please choose another one.",
-      "member_exists": "Member already exists"
+      "member_exists": "Member already exists",
+      "duplicate_name": "This name is already taken. Please choose another one."
     }
   },
   "manual_entry": {
@@ -177,6 +178,7 @@
     "friend_name_placeholder": "Friend's name",
     "add_hint": "Add friends to split costs with!",
     "create_btn": "Create Trip",
+    "create_trip": "Boarding Now! ✈️",
     "creating": "Creating...",
     "host_tag": "Trip Host",
     "edit_profile": "Edit Profile",

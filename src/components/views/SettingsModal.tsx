@@ -47,7 +47,7 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
 
   // ... (handleSaveTrip, startEditMember, handleSaveMember, handleAddMember 邏輯保持不變) ...
   const handleSaveTrip = async () => {
-    if (!tripName.trim()) return alert('Name cannot be empty');
+    if (!tripName.trim()) return alert(t('settings.general.name_required')); // ★ i18n
     await updateTripName(trip.id, tripName);
     onClose();
   };
@@ -60,14 +60,14 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
   };
 
   const handleSaveMember = async () => {
-    if (!tempMemberName.trim()) return alert("Name is required");
+    if (!tempMemberName.trim()) return alert(t('settings.members.name_required'));
 
     const isDuplicate = trip.members.some((m: any) => 
       m.id !== editingMember.id && m.name.toLowerCase() === tempMemberName.trim().toLowerCase()
     );
 
     if (isDuplicate) {
-      alert("This name is already taken. Please choose another one.");
+      alert(t('settings.members.duplicate_name'));
       return;
     }
 
@@ -82,7 +82,7 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
   const handleAddMember = async () => {
     if (!newMemberName.trim()) return;
     if (trip.members.some((m: any) => m.name.toLowerCase() === newMemberName.trim().toLowerCase())) {
-        alert("Member already exists");
+        alert(t('settings.members.member_exists'));
         return;
     }
     await addMember(trip.id, newMemberName);

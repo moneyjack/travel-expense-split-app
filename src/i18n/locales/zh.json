@@ -143,7 +143,8 @@
     "alerts": {
       "name_empty": "名稱不能為空",
       "name_taken": "此名稱已被使用，請選擇其他名稱。",
-      "member_exists": "成員已存在"
+      "member_exists": "成員已存在",
+        "duplicate_name": "此名稱已被使用，請選擇其他名稱。"
     }
   },
   "manual_entry": {
@@ -176,6 +177,7 @@
     "friend_name_placeholder": "朋友的名字",
     "add_hint": "加入朋友一起分攤費用！",
     "create_btn": "建立旅程",
+    "create_trip": "出發！✈️",
     "creating": "建立中...",
     "host_tag": "主辦人",
     "edit_profile": "編輯個人資料",
