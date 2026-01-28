@@ -212,5 +212,28 @@
     "scan_receipt": "Scan Receipt",
     "manual_entry": "Manual Entry",
     "footer_hint": "Select an option to track your spending"
+  },
+  "auth": {
+    "welcome_title": "Welcome 算鳩數",
+    "check_email_title": "Check your Email",
+    "email_desc": "Enter your email to sign in or create an account.",
+    "otp_desc": "We've sent an 8-digit code to {{email}}",
+    "email_label": "Email Address",
+    "email_placeholder": "name@example.com",
+    "send_code_btn": "Send Code",
+    "sending_btn": "Sending...",
+    "otp_label": "Verification Code",
+    "otp_placeholder": "00000000",
+    "login_btn": "Login",
+    "verifying_btn": "Verifying...",
+    "back_to_email": "← Enter a different email",
+    "footer_terms": "By continuing, you agree to our Terms & Privacy Policy.",
+    "alerts": {
+      "enter_email": "Please enter your email",
+      "code_sent": "Verification code sent to your email!",
+      "send_error": "Error sending OTP",
+      "enter_code": "Please enter the code",
+      "invalid_code": "Invalid code or expired. Please try again."
+    }
   }
 }

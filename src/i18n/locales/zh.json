@@ -212,5 +212,28 @@
     "scan_receipt": "掃描收據",
     "manual_entry": "手動輸入",
     "footer_hint": "選擇一種方式來記錄你的消費"
+  },
+  "auth": {
+    "welcome_title": "歡迎使用 算鳩數",
+    "check_email_title": "檢查你的信箱",
+    "email_desc": "輸入 Email 以登入或註冊帳號。",
+    "otp_desc": "我們已發送 8 位數驗證碼至 {{email}}",
+    "email_label": "電子郵件地址",
+    "email_placeholder": "name@example.com",
+    "send_code_btn": "發送驗證碼",
+    "sending_btn": "發送中...",
+    "otp_label": "驗證碼",
+    "otp_placeholder": "00000000",
+    "login_btn": "登入",
+    "verifying_btn": "驗證中...",
+    "back_to_email": "← 使用其他 Email",
+    "footer_terms": "繼續即代表你同意我們的服務條款與隱私權政策。",
+    "alerts": {
+      "enter_email": "請輸入你的 Email",
+      "code_sent": "驗證碼已發送至你的信箱！",
+      "send_error": "發送驗證碼時發生錯誤",
+      "enter_code": "請輸入驗證碼",
+      "invalid_code": "驗證碼無效或已過期，請重試。"
+    }
   }
 }
