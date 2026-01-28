@@ -84,5 +84,133 @@
       "unsettle_confirm": "Do you want to re-open (unsettle) this expense?",
       "remove_item": "Remove this item?"
     }
+  },
+  "stats": {
+    "spending_breakdown": "Spending Breakdown",
+    "settlement_plan": "Settlement Plan",
+    "you": "You",
+    "convert_currency": "Convert Currency",
+    "hide_converter": "Hide Converter",
+    "calculator_title": "Exchange Rate Calculator",
+    "rate_hint": "* Enter the agreed rate (e.g. 0.053 for JPY to HKD)",
+    "all_settled_title": "All settled up! 🎉",
+    "all_settled_desc": "No one owes anything right now.",
+    "owe": "owe"
+  },
+  "share": {
+    "title": "Invite Friends",
+    "desc_p1": "Share this link with your friends.",
+    "desc_p2": "They can join <1>{{name}}</1> without downloading the app!",
+    "link_label": "Trip Link",
+    "copied": "Copied!",
+    "copy_button": "Copy Link"
+  },
+  "settings": {
+    "title": "Settings",
+    "tabs": {
+      "general": "General",
+      "members": "Members"
+    },
+    "general": {
+      "trip_name_label": "Trip Name",
+      "tips_title": "💡 Pro Tips:",
+      "tip_1": "Trip name is visible to all members.",
+      "tip_2": "You can change the base currency (Coming Soon).",
+      "delete_trip": "Delete Trip",
+      "delete_warning": "This action cannot be undone.",
+      "save_changes": "Save Changes"
+    },
+    "members": {
+      "desc": "Edit member details below.",
+      "me_badge": "Me",
+      "host_badge": "HOST",
+      "edit_profile_title": "Edit Member",
+      "save": "Save",
+      "name_placeholder": "Name",
+      "color_label": "Color",
+      "avatar_label": "Avatar",
+      "remove_tooltip": "Remove Member",
+      "add_member_label": "New Member Name",
+      "add_btn": "Add",
+      "cancel_btn": "Cancel",
+      "add_new_btn": "Add New Member"
+    },
+    "alerts": {
+      "name_empty": "Name cannot be empty",
+      "name_taken": "This name is already taken. Please choose another one.",
+      "member_exists": "Member already exists"
+    }
+  },
+  "manual_entry": {
+    "cancel": "Cancel",
+    "title": "Manual Entry",
+    "add_item": "Add",
+    "shop_name_label": "Shop Name",
+    "shop_name_placeholder": "e.g. 7-Eleven",
+    "date_label": "Date",
+    "paid_by_label": "Paid By",
+    "qty_label": "Qty",
+    "item_label": "Item",
+    "item_name_placeholder": "Item name",
+    "price_label": "Price",
+    "split_all": "All",
+    "total_amount": "Total Amount",
+    "saving": "Saving...",
+    "save": "Save Expense",
+    "alerts": {
+      "shop_name_required": "Please enter a Shop Name",
+      "item_required": "Please add at least one item"
+    }
+  },
+  "create_trip": {
+    "title": "New Trip",
+    "trip_name_label": "Trip Name",
+    "trip_name_placeholder": "e.g. Hawaii 2024",
+    "currency_label": "Currency",
+    "who_is_going": "Who is going?",
+    "friend_name_placeholder": "Friend's name",
+    "add_hint": "Add friends to split costs with!",
+    "create_btn": "Create Trip",
+    "creating": "Creating...",
+    "host_tag": "Trip Host",
+    "edit_profile": "Edit Profile",
+    "edit_friend": "Edit Friend",
+    "done": "Done",
+    "remove_member": "Remove from Trip",
+    "color": "Color",
+    "avatar": "Avatar",
+    "alerts": {
+      "member_exists": "Member already exists!",
+      "name_required": "Name is required",
+      "name_taken": "Name already taken!",
+      "remove_confirm": "Remove {{name}}?"
+    }
+  },
+  "confirm_receipt": {
+    "title": "Edit Receipt",
+    "cancel": "Cancel",
+    "add_btn": "Add",
+    "view_full_image": "View Full Image",
+    "shop_name_label": "Shop Name",
+    "default_shop_name": "Restaurant",
+    "date_label": "Date",
+    "paid_by_label": "Paid By",
+    "qty_label": "Qty",
+    "item_label": "Item",
+    "price_label": "Total",
+    "split_all": "All",
+    "nobody": "Nobody",
+    "total_amount": "Total Amount",
+    "saving": "Saving...",
+    "confirm_btn": "Confirm Receipt",
+    "receipt_image_title": "Receipt Image",
+    "default_item_name": "New Item",
+    "delete_confirm": "Delete this item?"
+  },
+  "action_sheet": {
+    "title": "Add Expense",
+    "scan_receipt": "Scan Receipt",
+    "manual_entry": "Manual Entry",
+    "footer_hint": "Select an option to track your spending"
   }
 }

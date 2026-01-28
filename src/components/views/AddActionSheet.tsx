@@ -1,5 +1,6 @@
 // src/components/views/AddActionSheet.tsx
 import React from 'react';
+import { useTranslation } from 'react-i18next'
 
 // 定義一些可愛的 Icon
 const Icons = {
@@ -16,6 +17,7 @@ interface AddActionSheetProps {
 }
 
 export const AddActionSheet: React.FC<AddActionSheetProps> = ({ isOpen, onClose, onScan, onManual }) => {
+  const { t } = useTranslation(); // ★ 初始化翻譯
   if (!isOpen) return null;
 
   return (
@@ -29,7 +31,7 @@ export const AddActionSheet: React.FC<AddActionSheetProps> = ({ isOpen, onClose,
       {/* 2. 底部滑出面板 */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-800">Add Expense</h3>
+          <h3 className="text-xl font-bold text-gray-800">{t('action_sheet.title')}</h3>
           <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
             <Icons.X />
           </button>
@@ -44,7 +46,7 @@ export const AddActionSheet: React.FC<AddActionSheetProps> = ({ isOpen, onClose,
             <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white shadow-lg shadow-indigo-300">
               <Icons.Camera />
             </div>
-            <span className="font-bold text-indigo-900">Scan Receipt</span>
+            <span className="font-bold text-indigo-900">{t('action_sheet.scan_receipt')}</span>
           </button>
 
           {/* 按鈕 B: 手動輸入 */}
@@ -55,12 +57,12 @@ export const AddActionSheet: React.FC<AddActionSheetProps> = ({ isOpen, onClose,
             <div className="w-16 h-16 bg-pink-400 rounded-full flex items-center justify-center text-white shadow-lg shadow-pink-300">
               <Icons.Pen />
             </div>
-            <span className="font-bold text-pink-900">Manual Entry</span>
+            <span className="font-bold text-pink-900">{t('action_sheet.manual_entry')}</span>
           </button>
         </div>
 
         <div className="mt-8 text-center text-gray-400 text-sm">
-          Select an option to track your spending
+          {t('action_sheet.footer_hint')}
         </div>
       </div>
     </>

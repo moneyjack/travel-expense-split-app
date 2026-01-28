@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
+import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
 const Avatar = ({ member, size = 'sm' }: { member: any, size?: 'sm' | 'md' }) => (
   <div className={`${size === 'sm' ? 'w-6 h-6 text-xs' : 'w-10 h-10 text-lg'} ${member.color} rounded-full flex items-center justify-center text-white font-bold shadow-sm border border-white`}>
     {member.avatar || member.name[0]}
@@ -25,6 +26,7 @@ interface EditingItem {
 }
 
 export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) => {
+  const { t } = useTranslation(); // ★ 初始化翻譯
   const { createExpense, trips, activeTripId, loading } = useTripContext();
   const activeTrip = trips.find(t => t.id === activeTripId);
   const members = activeTrip?.members || [];
@@ -106,10 +108,10 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
     <div className="p-4 min-h-screen bg-gray-50 animate-in slide-in-from-bottom-10 pb-32">
       {/* Header */}
       <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-50 z-20 py-2">
-        <button onClick={onCancel} className="text-gray-500 font-bold px-2">Cancel</button>
-        <h2 className="text-lg font-bold">Manual Entry</h2>
+        <button onClick={onCancel} className="text-gray-500 font-bold px-2">{t('manual_entry.cancel')}</button>
+        <h2 className="text-lg font-bold">{t('manual_entry.title')}</h2>
         <button className="text-primary font-bold px-2 flex items-center gap-1" onClick={addItem}>
-          <Icons.Plus /> Add
+          <Icons.Plus /> {t('manual_entry.add_item')}
         </button>
       </div>
 
@@ -117,17 +119,17 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
       <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 space-y-4">
          <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Shop Name</label>
+              <label className="text-[10px] text-gray-400 font-bold uppercase">{t('manual_entry.shop_name_label')}</label>
               <input 
                 value={shopName} 
                 onChange={e => setShopName(e.target.value)}
-                placeholder="e.g. 7-Eleven"
+                placeholder={t('manual_entry.shop_name_placeholder')} // ★ i18n
                 className="w-full text-lg font-bold border-b border-gray-200 outline-none rounded-none placeholder-gray-300" 
                 autoFocus
               />
             </div>
             <div className="col-span-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Date</label>
+              <label className="text-[10px] text-gray-400 font-bold uppercase">{t('manual_entry.date_label')}</label>
               <input 
                 type="date"
                 value={date} 
@@ -138,7 +140,7 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
          </div>
 
          <div>
-           <label className="text-[10px] text-gray-400 font-bold uppercase mb-1 block">Paid By</label>
+           <label className="text-[10px] text-gray-400 font-bold uppercase mb-1 block">{t('manual_entry.paid_by_label')}</label>
            <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {members.map(m => (
                 <button 
@@ -172,7 +174,7 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
             {/* 第一行：輸入欄位 */}
             <div className="flex gap-2 items-start mb-3 pr-8">
               <div className="w-10">
-                 <label className="text-[9px] text-gray-400 font-bold uppercase text-center block">Qty</label>
+                 <label className="text-[9px] text-gray-400 font-bold uppercase text-center block">{t('manual_entry.qty_label')}</label>
                  <input 
                    type="number" 
                    value={item.quantity}
@@ -181,16 +183,16 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
                  />
               </div>
               <div className="flex-1">
-                <label className="text-[9px] text-gray-400 font-bold uppercase block">Item</label>
+                <label className="text-[9px] text-gray-400 font-bold uppercase block">{t('manual_entry.item_label')}</label>
                 <input 
                    value={item.name}
                    onChange={e => updateItem(idx, 'name', e.target.value)}
-                   placeholder="Item name"
+                   placeholder={t('manual_entry.item_name_placeholder')} // ★ i18n
                    className="w-full font-bold bg-gray-50 rounded-lg py-1 px-2 text-sm placeholder-gray-300"
                  />
               </div>
               <div className="w-20">
-                <label className="text-[9px] text-gray-400 font-bold uppercase text-right block">Price</label>
+                <label className="text-[9px] text-gray-400 font-bold uppercase text-right block">{t('manual_entry.price_label')}</label>
                 <input 
                    type="number"
                    value={item.price || ''}
@@ -209,11 +211,11 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
                   onClick={() => handleSplitAll(idx)}
                   className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all shrink-0 ${
                     item.assignedTo.length === members.length 
-                      ? 'bg-indigo-50 text-primary border-indigo-100' // 全選狀態
+                      ? 'bg-indigo-50 text-primary border-indigo-100' 
                       : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                   }`}
                >
-                  <Icons.Users /> All
+                  <Icons.Users /> {t('manual_entry.split_all')}
                </button>
 
                {/* 分隔線 */}
@@ -253,11 +255,11 @@ export const ManualEntryView: React.FC<ManualEntryViewProps> = ({ onCancel }) =>
       {/* 底部總計 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 pb-8 shadow-2xl z-30">
         <div className="flex justify-between items-end mb-3">
-           <span className="text-gray-400 text-sm font-bold">Total Amount</span>
+           <span className="text-gray-400 text-sm font-bold">{t('manual_entry.total_amount')}</span>
            <span className="text-2xl font-bold text-gray-900">${grandTotal.toLocaleString()}</span>
         </div>
         <Button onClick={handleSave} disabled={loading} className="w-full py-3.5 text-lg rounded-xl shadow-lg shadow-indigo-200">
-          {loading ? 'Saving...' : 'Save Expense'}
+          {loading ? t('manual_entry.saving') : t('manual_entry.save')}
         </Button>
       </div>
     </div>

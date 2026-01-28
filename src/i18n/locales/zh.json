@@ -84,5 +84,133 @@
       "unsettle_confirm": "你想將此帳目重新設為「未結清」嗎？",
       "remove_item": "移除此品項？"
     }
+  },
+  "stats": {
+    "spending_breakdown": "花費分佈",
+    "settlement_plan": "結算方案",
+    "you": "你",
+    "convert_currency": "轉換匯率",
+    "hide_converter": "隱藏換算",
+    "calculator_title": "匯率計算機",
+    "rate_hint": "* 請輸入約定匯率 (例如 JPY 轉 HKD 輸入 0.053)",
+    "all_settled_title": "太棒了！所有帳目已結清 🎉",
+    "all_settled_desc": "目前沒有人欠款。",
+    "owe": "欠"
+  },
+  "share": {
+    "title": "邀請朋友",
+    "desc_p1": "分享連結給你的朋友。",
+    "desc_p2": "他們可以不用下載 App 就能加入 <1>{{name}}</1>！",
+    "link_label": "旅程連結",
+    "copied": "已複製！",
+    "copy_button": "複製連結"
+  },
+  "settings": {
+    "title": "設定",
+    "tabs": {
+      "general": "一般",
+      "members": "成員"
+    },
+    "general": {
+      "trip_name_label": "旅程名稱",
+      "tips_title": "💡 小撇步：",
+      "tip_1": "所有成員都看得到旅程名稱。",
+      "tip_2": "你可以更改基礎貨幣 (即將推出)。",
+      "delete_trip": "刪除旅程",
+      "delete_warning": "此動作無法復原。",
+      "save_changes": "儲存變更"
+    },
+    "members": {
+      "desc": "編輯成員資料。",
+      "me_badge": "我",
+      "host_badge": "主辦人",
+      "edit_profile_title": "編輯成員資料",
+      "save": "儲存",
+      "name_placeholder": "名稱",
+      "color_label": "顏色",
+      "avatar_label": "頭像",
+      "remove_tooltip": "移除成員",
+      "add_member_label": "新成員名稱",
+      "add_btn": "新增",
+      "cancel_btn": "取消",
+      "add_new_btn": "新增成員"
+    },
+    "alerts": {
+      "name_empty": "名稱不能為空",
+      "name_taken": "此名稱已被使用，請選擇其他名稱。",
+      "member_exists": "成員已存在"
+    }
+  },
+  "manual_entry": {
+    "cancel": "取消",
+    "title": "手動輸入",
+    "add_item": "新增",
+    "shop_name_label": "商店名稱",
+    "shop_name_placeholder": "例如: 7-Eleven",
+    "date_label": "日期",
+    "paid_by_label": "付款人",
+    "qty_label": "數量",
+    "item_label": "品項",
+    "item_name_placeholder": "品項名稱",
+    "price_label": "價格",
+    "split_all": "全選",
+    "total_amount": "總金額",
+    "saving": "儲存中...",
+    "save": "儲存",
+    "alerts": {
+      "shop_name_required": "請輸入商店名稱",
+      "item_required": "請至少新增一個品項"
+    }
+  },
+  "create_trip": {
+    "title": "新旅程",
+    "trip_name_label": "旅程名稱",
+    "trip_name_placeholder": "例如：2024 東京之旅",
+    "currency_label": "貨幣",
+    "who_is_going": "有誰一起去？",
+    "friend_name_placeholder": "朋友的名字",
+    "add_hint": "加入朋友一起分攤費用！",
+    "create_btn": "建立旅程",
+    "creating": "建立中...",
+    "host_tag": "主辦人",
+    "edit_profile": "編輯個人資料",
+    "edit_friend": "編輯朋友",
+    "done": "完成",
+    "remove_member": "移除成員",
+    "color": "顏色",
+    "avatar": "頭像",
+    "alerts": {
+      "member_exists": "成員已存在！",
+      "name_required": "請輸入名稱",
+      "name_taken": "名稱已被使用！",
+      "remove_confirm": "確定要移除 {{name}} 嗎？"
+    }
+  },
+  "confirm_receipt": {
+    "title": "編輯收據",
+    "cancel": "取消",
+    "add_btn": "新增",
+    "view_full_image": "查看原圖",
+    "shop_name_label": "商店名稱",
+    "default_shop_name": "餐廳",
+    "date_label": "日期",
+    "paid_by_label": "付款人",
+    "qty_label": "數量",
+    "item_label": "品項",
+    "price_label": "金額",
+    "split_all": "全選",
+    "nobody": "無",
+    "total_amount": "總金額",
+    "saving": "儲存中...",
+    "confirm_btn": "確認收據",
+    "receipt_image_title": "收據圖片",
+    "default_item_name": "新品項",
+    "delete_confirm": "刪除此項目？"
+  },
+  "action_sheet": {
+    "title": "新增支出",
+    "scan_receipt": "掃描收據",
+    "manual_entry": "手動輸入",
+    "footer_hint": "選擇一種方式來記錄你的消費"
   }
 }

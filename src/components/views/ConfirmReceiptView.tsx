@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
+import { useTranslation } from 'react-i18next'
 
 // Icon 元件 (新增 Zoom In/Out Icon)
 const Icons = {
@@ -26,6 +27,7 @@ interface EditingItem {
 }
 
 export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResult, receiptUrl, onCancel }) => {
+  const { t } = useTranslation(); // ★ 初始化翻譯
   const { createExpense, trips, activeTripId, loading } = useTripContext();
   const activeTrip = trips.find(t => t.id === activeTripId);
   const members = activeTrip?.members || [];
@@ -93,44 +95,40 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
     <div className="p-4 min-h-screen bg-gray-50 animate-in slide-in-from-bottom-10 pb-32">
       {/* Header */}
       <div className="flex justify-between items-center mb-4 sticky top-0 bg-gray-50 z-20 py-2">
-        <button onClick={onCancel} className="text-gray-500 font-bold px-2">Cancel</button>
-        <h2 className="text-lg font-bold">Edit Receipt</h2>
+        <button onClick={onCancel} className="text-gray-500 font-bold px-2">{t('confirm_receipt.cancel')}</button>
+        <h2 className="text-lg font-bold">{t('confirm_receipt.title')}</h2>
         <button className="text-primary font-bold px-2 flex items-center gap-1" onClick={addItem}>
-          <Icons.Plus /> Add
+          <Icons.Plus /> {t('confirm_receipt.add_btn')}
         </button>
       </div>
 
       {/* 1. 店名、日期、付款人 & 圖片縮圖 */}
       <div className="bg-white p-4 rounded-2xl shadow-sm mb-4 space-y-4">
          
-         {/* ★ 修改圖片區域：變成可點擊的縮圖 */}
          {receiptUrl && (
             <div 
               className="relative group cursor-pointer overflow-hidden rounded-xl mb-2"
-              onClick={() => setIsImageZoomed(true)} // 點擊打開大圖
+              onClick={() => setIsImageZoomed(true)} 
             >
               <img 
                 src={receiptUrl} 
                 className="w-full h-32 object-cover opacity-90 transition-transform group-hover:scale-105" 
                 alt="Receipt Thumbnail"
               />
-              {/* 覆蓋層：提示可以放大 */}
               <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                  <span className="text-white font-bold flex items-center gap-2 bg-black/50 px-3 py-1 rounded-full text-xs">
-                    <Icons.Zoom /> View Full Image
+                    <Icons.Zoom /> {t('confirm_receipt.view_full_image')}
                  </span>
               </div>
-              {/* 手機版常駐提示小圖示 */}
               <div className="absolute bottom-2 right-2 bg-black/60 text-white p-1.5 rounded-full md:hidden">
                  <Icons.Zoom /> 
               </div>
             </div>
          )}
          
-         {/* ... (原本的輸入欄位保持不變) ... */}
          <div className="grid grid-cols-3 gap-4">
             <div className="col-span-2">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Shop Name</label>
+              <label className="text-[10px] text-gray-400 font-bold uppercase">{t('confirm_receipt.shop_name_label')}</label>
               <input 
                 value={shopName} 
                 onChange={e => setShopName(e.target.value)}
@@ -138,7 +136,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
               />
             </div>
             <div className="col-span-1">
-              <label className="text-[10px] text-gray-400 font-bold uppercase">Date</label>
+              <label className="text-[10px] text-gray-400 font-bold uppercase">{t('confirm_receipt.date_label')}</label>
               <input 
                 type="date"
                 value={date} 
@@ -149,7 +147,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
          </div>
 
          <div>
-           <label className="text-[10px] text-gray-400 font-bold uppercase mb-1 block">Paid By</label>
+           <label className="text-[10px] text-gray-400 font-bold uppercase mb-1 block">{t('confirm_receipt.paid_by_label')}</label>
            <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {members.map(m => (
                 <button 
@@ -167,7 +165,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
          </div>
       </div>
 
-      {/* 2. 項目列表 (保持不變) */}
+      {/* 2. 項目列表 */}
       <div className="space-y-3">
         {items.map((item, idx) => (
           <div key={idx} className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 relative group">
@@ -180,7 +178,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
 
             <div className="flex gap-2 items-start mb-3 pr-8">
               <div className="w-10">
-                 <label className="text-[9px] text-gray-400 font-bold uppercase text-center block">Qty</label>
+                 <label className="text-[9px] text-gray-400 font-bold uppercase text-center block">{t('confirm_receipt.qty_label')}</label>
                  <input 
                    type="number" 
                    value={item.quantity}
@@ -189,7 +187,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                  />
               </div>
               <div className="flex-1">
-                <label className="text-[9px] text-gray-400 font-bold uppercase block">Item</label>
+                <label className="text-[9px] text-gray-400 font-bold uppercase block">{t('confirm_receipt.item_label')}</label>
                 <input 
                    value={item.name}
                    onChange={e => updateItem(idx, 'name', e.target.value)}
@@ -197,7 +195,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                  />
               </div>
               <div className="w-16">
-                <label className="text-[9px] text-gray-400 font-bold uppercase text-right block">Total</label>
+                <label className="text-[9px] text-gray-400 font-bold uppercase text-right block">{t('confirm_receipt.price_label')}</label>
                 <input 
                    type="number"
                    value={item.price}
@@ -216,7 +214,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                       : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
                   }`}
                >
-                  <Icons.Users /> All
+                  <Icons.Users /> {t('confirm_receipt.split_all')}
                </button>
                <div className="w-[1px] h-5 bg-gray-100 shrink-0"></div>
                {members.map(member => {
@@ -242,7 +240,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                })}
                <div className="flex items-center ml-auto pl-2 border-l border-gray-100">
                  <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                   {item.assignedTo.length === 0 ? 'Nobody' : `${item.assignedTo.length}/${members.length}`}
+                   {item.assignedTo.length === 0 ? t('confirm_receipt.nobody') : `${item.assignedTo.length}/${members.length}`}
                  </span>
                </div>
             </div>
@@ -253,20 +251,19 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
       {/* 底部總計 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 pb-8 shadow-2xl z-30">
         <div className="flex justify-between items-end mb-3">
-           <span className="text-gray-400 text-sm font-bold">Total Amount</span>
+           <span className="text-gray-400 text-sm font-bold">{t('confirm_receipt.total_amount')}</span>
            <span className="text-2xl font-bold text-gray-900">${grandTotal.toLocaleString()}</span>
         </div>
         <Button onClick={handleSave} disabled={loading} className="w-full py-3.5 text-lg rounded-xl shadow-lg shadow-indigo-200">
-          {loading ? 'Saving...' : 'Confirm Receipt'}
+          {loading ? t('confirm_receipt.saving') : t('confirm_receipt.confirm_btn')}
         </Button>
       </div>
 
-      {/* ★ 新增：全螢幕圖片檢視 Modal */}
+      {/* 全螢幕圖片檢視 Modal */}
       {isImageZoomed && receiptUrl && (
         <div className="fixed inset-0 z-[60] bg-black flex flex-col animate-in fade-in duration-200">
-          {/* Top Bar with Close Button */}
           <div className="flex justify-between items-center p-4 bg-black/50 backdrop-blur-sm absolute top-0 left-0 right-0 z-10">
-            <span className="text-white font-bold text-sm">Receipt Image</span>
+            <span className="text-white font-bold text-sm">{t('confirm_receipt.receipt_image_title')}</span>
             <button 
               onClick={() => setIsImageZoomed(false)}
               className="p-2 bg-white/20 rounded-full text-white hover:bg-white/30 backdrop-blur-md"
@@ -275,13 +272,11 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
             </button>
           </div>
 
-          {/* Image Container (Scrollable) */}
           <div className="flex-1 overflow-auto flex items-center justify-center p-2 pt-16 pb-safe">
-             {/* 使用 w-full 讓它寬度撐滿，h-auto 保持比例，這樣長收據可以上下滑動 */}
              <img 
                src={receiptUrl} 
                className="w-full h-auto max-w-none shadow-2xl" 
-               style={{ minHeight: '50%' }} // 防止圖片太小時縮得看不見
+               style={{ minHeight: '50%' }} 
                alt="Full Receipt" 
              />
           </div>

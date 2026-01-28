@@ -3,6 +3,7 @@ import { Member } from '../../types'; // 請確認這路徑是對的
 import { Button } from '../ui/Button';
 import { useTripContext } from '../../context/TripContext';
 import { CURRENCIES } from '../../utils/currency'; // ★ 引入工具
+import { useTranslation } from 'react-i18next'
 
 // --- Constants ---
 const AVATARS = [
@@ -92,6 +93,7 @@ interface CreateTripViewProps {
 }
 
 export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
+  const { t } = useTranslation(); // ★ 初始化翻譯
   const { createTrip, loading } = useTripContext();
   
   const [newTripName, setNewTripName] = useState('');
@@ -208,23 +210,23 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
       {/* Header */}
       <div className="flex items-center gap-2 mb-8">
         <button onClick={onCancel} className="text-gray-400 p-2"><Icons.ChevronLeft /></button>
-        <h2 className="text-2xl font-bold">New Trip</h2>
+        <h2 className="text-2xl font-bold">{t('create_trip.title')}</h2>
       </div>
 
       <div className="space-y-8">
         {/* Trip Name */}
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">Trip Name</label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">{t('create_trip.trip_name_label')}</label>
           <input 
             className="w-full text-lg p-4 bg-gray-50 rounded-2xl border-none focus:ring-2 focus:ring-primary/20 outline-none transition-all font-bold text-gray-800"
-            placeholder="e.g. Hawaii 2024"
+            placeholder={t('create_trip.trip_name_placeholder')} // ★ i18n
             value={newTripName}
             onChange={e => setNewTripName(e.target.value)}
             disabled={loading}
           />
         </div>
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">Currency</label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">{t('create_trip.currency_label')}</label>
           <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
              {CURRENCIES.map(c => (
                 <button
@@ -240,13 +242,13 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
         </div>
         {/* Members Section */}
         <div>
-          <label className="block text-sm font-bold text-gray-700 mb-2">Who is going?</label>
+          <label className="block text-sm font-bold text-gray-700 mb-2">{t('create_trip.who_is_going')}</label>
           
           {/* Add Input */}
           <div className="flex gap-2 mb-6">
             <input 
               className="flex-1 p-4 bg-gray-50 rounded-2xl border-none outline-none focus:ring-2 focus:ring-primary/20 transition-all text-lg font-bold text-gray-800"
-              placeholder="Friend's name"
+              placeholder={t('create_trip.friend_name_placeholder')} // ★ i18n
               value={newMemberName}
               onChange={e => setNewMemberName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleAddMember()}
@@ -257,7 +259,6 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
           {/* Members List */}
           <div className="flex flex-col gap-3">
             
-            {/* Host */}
             <MemberPill 
                 key="HOST" 
                 member={hostDetails} 
@@ -265,14 +266,13 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
                 isHost={true} 
             />
 
-            {/* Added Members */}
             {newTripMembers.map(m => (
               <MemberPill 
                 key={m.tempId} 
                 member={m} 
                 onClick={() => openEditModal(m)} 
                 onRemove={() => {
-                    if (confirm(`Remove ${m.name}?`)) { // 加個確認比較安全
+                    if (confirm(t('create_trip.alerts.remove_confirm', { name: m.name }))) { // ★ i18n
                         setNewTripMembers(prev => prev.filter(member => member.tempId !== m.tempId));
                     }
                 }}
@@ -281,7 +281,7 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
           </div>
           
           {newTripMembers.length === 0 && (
-             <p className="text-center text-gray-400 mt-8 font-medium">Add friends to split costs with!</p>
+             <p className="text-center text-gray-400 mt-8 font-medium">{t('create_trip.add_hint')}</p>
           )}
         </div>
       </div>
@@ -293,30 +293,28 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
             disabled={loading || !newTripName.trim()}
             className="w-full py-6 text-xl font-bold rounded-2xl shadow-xl shadow-indigo-200"
         >
-          {loading ? 'Creating...' : 'Create Trip'}
+          {loading ? t('create_trip.creating') : t('create_trip.create_btn')}
         </Button>
       </div>
 
-      {/* Edit Modal (你要求的漂亮 UI) */}
+      {/* Edit Modal */}
       {editingMemberId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setEditingMemberId(null)} />
             <div className="bg-white w-full max-w-sm rounded-3xl shadow-2xl relative z-10 flex flex-col max-h-[85vh] animate-in zoom-in-95 overflow-hidden">
                 
-                {/* Modal Header */}
                 <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-white z-10">
                     <button onClick={() => setEditingMemberId(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
                         <Icons.Back />
                     </button>
-                    <h3 className="font-bold text-lg">{editingMemberId === 'HOST' ? 'Edit Profile' : 'Edit Friend'}</h3>
+                    {/* ★ i18n */}
+                    <h3 className="font-bold text-lg">{editingMemberId === 'HOST' ? t('create_trip.edit_profile') : t('create_trip.edit_friend')}</h3>
                     <button onClick={saveMemberEdit} className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-full">
-                        Done
+                        {t('create_trip.done')}
                     </button>
                 </div>
 
-                {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
-                    {/* 1. 預覽與改名 (美化版) */}
                     <div className="flex flex-col items-center">
                         <div className={`w-24 h-24 rounded-full ${editColor} flex items-center justify-center text-6xl shadow-lg border-4 border-white mb-4 transition-all`}>
                             {editAvatar}
@@ -325,13 +323,12 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
                             value={editName}
                             onChange={e => setEditName(e.target.value)}
                             className="text-center text-2xl font-bold border-b-2 border-gray-100 focus:border-primary outline-none w-full pb-2"
-                            placeholder="Name"
+                            placeholder={t('create_trip.friend_name_placeholder')} // ★ i18n
                         />
                     </div>
 
-                    {/* 2. 顏色選擇 */}
                     <div>
-                        <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">Color</label>
+                        <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">{t('create_trip.color')}</label>
                         <div className="flex flex-wrap gap-3 justify-center">
                             {COLORS.map(c => (
                             <button 
@@ -343,9 +340,8 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
                         </div>
                     </div>
 
-                    {/* 3. 頭像選擇 (網格佈局) */}
                     <div>
-                        <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">Avatar</label>
+                        <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">{t('create_trip.avatar')}</label>
                         <div className="grid grid-cols-6 gap-2 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
                             {AVATARS.map(emoji => (
                             <button 
@@ -359,14 +355,13 @@ export const CreateTripView: React.FC<CreateTripViewProps> = ({ onCancel }) => {
                         </div>
                     </div>
 
-                    {/* Delete Button */}
                     {editingMemberId !== 'HOST' && (
                       <div className="pt-4 border-t border-gray-100">
                           <button 
                               onClick={deleteMember}
                               className="w-full py-3 text-red-500 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex items-center justify-center gap-2"
                           >
-                              <Icons.Trash /> Remove from Trip
+                              <Icons.Trash /> {t('create_trip.remove_member')}
                           </button>
                       </div>
                     )}

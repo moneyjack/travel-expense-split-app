@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
+import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
 
 // ... (AVATARS, COLORS, Icons 保持不變) ...
 const AVATARS = [
@@ -29,6 +30,7 @@ const AVATARS = [
   };
   
 export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => void }) => {
+  const { t } = useTranslation(); // ★ 初始化翻譯
   // ★ 1. 取得 currentUserId
   const { updateTripName, updateMember, deleteTrip, addMember, removeMember, isHost, currentUserId } = useTripContext();
   
@@ -90,7 +92,6 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
 
   // --- 內部子視圖：成員編輯器 (保持不變) ---
   if (editingMember) {
-    // ... (這部分 UI 保持不變，因為進入這裡代表已經通過權限檢查了)
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
@@ -101,9 +102,10 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                <button onClick={() => setEditingMember(null)} className="p-2 hover:bg-gray-100 rounded-full text-gray-500">
                  <Icons.Back />
                </button>
-               <h3 className="font-bold text-lg">Edit My Profile</h3>
+               {/* ★ i18n: Edit Member */}
+               <h3 className="font-bold text-lg">{t('settings.members.edit_profile_title')}</h3>
                <button onClick={handleSaveMember} className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-full">
-                 Save
+                 {t('settings.members.save')}
                </button>
             </div>
   
@@ -117,13 +119,13 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                     value={tempMemberName}
                     onChange={e => setTempMemberName(e.target.value)}
                     className="text-center text-2xl font-bold border-b-2 border-gray-100 focus:border-primary outline-none w-full pb-2"
-                    placeholder="Name"
+                    placeholder={t('settings.members.name_placeholder')} // ★ i18n
                   />
                </div>
   
                {/* 顏色選擇 */}
                <div>
-                 <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">Color</label>
+                 <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">{t('settings.members.color_label')}</label>
                  <div className="flex flex-wrap gap-3 justify-center">
                    {COLORS.map(c => (
                      <button 
@@ -137,7 +139,7 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
   
                {/* 頭像選擇 */}
                <div>
-                 <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">Avatar</label>
+                 <label className="text-xs font-bold text-gray-400 uppercase mb-3 block">{t('settings.members.avatar_label')}</label>
                  <div className="grid grid-cols-6 gap-2">
                    {AVATARS.map(emoji => (
                      <button 
@@ -163,22 +165,22 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative z-10 flex flex-col max-h-[85vh] animate-in zoom-in-95 overflow-hidden">
         
         <div className="p-4 flex justify-between items-center border-b border-gray-50">
-          <h3 className="text-xl font-bold pl-2">Settings</h3>
+          <h3 className="text-xl font-bold pl-2">{t('settings.title')}</h3>
           <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><Icons.Close /></button>
         </div>
 
         {/* Tabs */}
         <div className="flex p-2 gap-2 bg-gray-50 mx-4 mt-4 rounded-xl">
-           <button onClick={() => setActiveTab('general')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-white shadow-sm text-primary' : 'text-gray-400 hover:text-gray-600'}`}>General</button>
-           <button onClick={() => setActiveTab('members')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members' ? 'bg-white shadow-sm text-primary' : 'text-gray-400 hover:text-gray-600'}`}>Members</button>
+           <button onClick={() => setActiveTab('general')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-white shadow-sm text-primary' : 'text-gray-400 hover:text-gray-600'}`}>{t('settings.tabs.general')}</button>
+           <button onClick={() => setActiveTab('members')} className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'members' ? 'bg-white shadow-sm text-primary' : 'text-gray-400 hover:text-gray-600'}`}>{t('settings.tabs.members')}</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6">
           {activeTab === 'general' ? (
             <div className="space-y-8">
-               {/* (General Tab 內容保持不變) */}
+               {/* General Tab */}
                <div>
-                  <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">Trip Name</label>
+                  <label className="text-xs font-bold text-gray-400 uppercase mb-2 block">{t('settings.general.trip_name_label')}</label>
                   <input 
                     value={tripName}
                     onChange={e => setTripName(e.target.value)}
@@ -186,52 +188,46 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                   />
                </div>
                <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100 text-blue-800 text-sm">
-                  <p className="font-bold mb-1">💡 Pro Tips:</p>
+                  <p className="font-bold mb-1">{t('settings.general.tips_title')}</p>
                   <ul className="list-disc pl-4 space-y-1 opacity-80">
-                    <li>Trip name is visible to all members.</li>
-                    <li>You can change the base currency (Coming Soon).</li>
+                    <li>{t('settings.general.tip_1')}</li>
+                    <li>{t('settings.general.tip_2')}</li>
                   </ul>
                </div>
                {isHost && (
                <div className="pt-8 border-t border-gray-100">
                   <button onClick={() => deleteTrip(trip.id)} className="w-full py-4 text-red-500 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex items-center justify-center gap-2">
-                    <Icons.Trash /> Delete Trip
+                    <Icons.Trash /> {t('settings.general.delete_trip')}
                   </button>
-                  <p className="text-center text-xs text-gray-300 mt-2">This action cannot be undone.</p>
+                  <p className="text-center text-xs text-gray-300 mt-2">{t('settings.general.delete_warning')}</p>
                </div>
                 )}
             </div>
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-gray-400 font-medium mb-2">
-                 {/* 提示字根據權限變更 */}
-                 Edit your profile details below.
+                 {t('settings.members.desc')}
               </p>
               {trip.members.map((m: any) => {
-                // ★ 2. 判斷是否為自己
                 const isMe = m.user_id === currentUserId;
 
                 return (
                     <div key={m.id} className="flex gap-2">
-                        {/* 點擊觸發編輯 (如果是自己) */}
                         <div 
                         className={`flex-1 flex items-center justify-between p-3 bg-white border border-gray-100 rounded-2xl transition-all group text-left ${(isMe || isHost) ? 'hover:border-primary hover:shadow-md cursor-pointer' : 'opacity-80'}`}
-                        onClick={() => (isMe || isHost) && startEditMember(m)} // ★ 只有自己能點
+                        onClick={() => (isMe || isHost) && startEditMember(m)} 
                         >
                             <div className="flex items-center gap-3">
                                 <div className={`w-10 h-10 rounded-full ${m.color} flex items-center justify-center text-lg text-white shadow-sm relative`}>
                                     {m.avatar}
-                                    {/* ★ 在列表中也可以標記 "Me" */}
-                                    {isMe && <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white">Me</div>}
+                                    {isMe && <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white">{t('settings.members.me_badge')}</div>}
                                 </div>
                                 <span className="font-bold text-gray-800">
                                     {m.name} 
-                                    {/* 顯示是不是 Host */}
-                                    {(m.isHost || m.is_host) && <span className="ml-2 text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">HOST</span>}
+                                    {(m.isHost || m.is_host) && <span className="ml-2 text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full">{t('settings.members.host_badge')}</span>}
                                 </span>
                             </div>
                             
-                            {/* ★ 只顯示自己的編輯按鈕 */}
                             {((isMe || isHost)) && (
                                 <div className="text-gray-300 group-hover:text-primary">
                                     <Icons.Edit />
@@ -239,12 +235,11 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                             )}
                         </div>
                         
-                        {/* 刪除按鈕 (只有 Host 且不是刪除自己時顯示) */}
                         {isHost && m.user_id !== currentUserId && (
                         <button 
                             onClick={() => removeMember(trip.id, m.id)}
                             className="p-3 bg-red-50 text-red-400 rounded-2xl hover:bg-red-100 hover:text-red-500 transition-colors"
-                            title="Remove Member"
+                            title={t('settings.members.remove_tooltip')}
                         >
                             <Icons.Trash />
                         </button>
@@ -253,22 +248,20 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                 );
               })}
               
-              {/* 新增成員 (只有 Host 可見) */}
               {isHost && (
                 isAddingMember ? (
                   <div className="p-4 bg-indigo-50 rounded-2xl border border-indigo-100 animate-in zoom-in-95">
-                      {/* ... 新增成員表單 ... */}
-                       <label className="text-xs font-bold text-indigo-400 uppercase mb-2 block">New Member Name</label>
+                       <label className="text-xs font-bold text-indigo-400 uppercase mb-2 block">{t('settings.members.add_member_label')}</label>
                       <div className="flex gap-2">
                           <input 
                               value={newMemberName}
                               onChange={e => setNewMemberName(e.target.value)}
                               className="flex-1 px-3 py-2 rounded-xl border border-indigo-200 outline-none focus:ring-2 focus:ring-indigo-300"
-                              placeholder="Name"
+                              placeholder={t('settings.members.name_placeholder')}
                               autoFocus
                           />
-                          <button onClick={handleAddMember} className="bg-primary text-white px-4 rounded-xl font-bold text-sm">Add</button>
-                          <button onClick={() => setIsAddingMember(false)} className="text-gray-400 px-2">Cancel</button>
+                          <button onClick={handleAddMember} className="bg-primary text-white px-4 rounded-xl font-bold text-sm">{t('settings.members.add_btn')}</button>
+                          <button onClick={() => setIsAddingMember(false)} className="text-gray-400 px-2">{t('settings.members.cancel_btn')}</button>
                       </div>
                   </div>
               ) : (
@@ -276,7 +269,7 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
                     onClick={() => setIsAddingMember(true)}
                     className="w-full py-3 border-2 border-dashed border-gray-200 rounded-2xl text-gray-400 font-bold hover:border-primary hover:text-primary hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
                   >
-                      <span className="text-xl">+</span> Add New Member
+                      <span className="text-xl">+</span> {t('settings.members.add_new_btn')}
                   </button>
               )
             )}
@@ -288,7 +281,7 @@ export const SettingsModal = ({ trip, onClose }: { trip: any; onClose: () => voi
         {/* General Tab Save Button */}
         {activeTab === 'general' && (
            <div className="p-4 border-t border-gray-50">
-             <Button onClick={handleSaveTrip} className="w-full py-4 rounded-xl text-lg">Save Changes</Button>
+             <Button onClick={handleSaveTrip} className="w-full py-4 rounded-xl text-lg">{t('settings.general.save_changes')}</Button>
            </div>
         )}
 

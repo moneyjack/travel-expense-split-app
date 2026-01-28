@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Trip, Debt } from '../../types';
 import { useTripContext } from '../../context/TripContext'; 
 import { formatCurrency, CURRENCIES } from '../../utils/currency'; // 確保 CURRENCIES 有被引入
+import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
 
 // Icons
 const Icons = {
@@ -106,6 +107,7 @@ interface StatsViewProps {
 }
 
 export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => {
+  const { t } = useTranslation(); // ★ 初始化翻譯
   const { settleAllExpenses, loading } = useTripContext();
   const { debts, spending, hasUnsettled } = useMemo(() => calculateTripStats(trip), [trip]);
   const maxSpend = Math.max(...Object.values(spending).map(Number), 1);
@@ -119,7 +121,9 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
       trip.currency === 'JPY' && targetCurrency === 'HKD' ? 0.053 : 
       trip.currency === 'TWD' && targetCurrency === 'HKD' ? 0.25 : 1
   );
-
+  const totalSpent = useMemo(() => {
+    return trip.expenses.reduce((acc, curr) => acc + curr.totalAmount, 0);
+  }, [trip.expenses]);
   return (
     <div className="space-y-8 pb-24 animate-in fade-in">
       
@@ -142,20 +146,22 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
 
       {/* 2. 花費圖表 */}
       <section className="bg-white p-6 rounded-3xl shadow-sm">
-        <h3 className="text-lg font-bold text-gray-800 mb-6">Spending Breakdown</h3>
+        {/* ★ i18n: Spending Breakdown */}
+        <h3 className="text-lg font-bold text-gray-800 mb-6">{t('stats.spending_breakdown')}</h3>
         <div className="space-y-4">
           {trip.members.map(m => {
             const amount = spending[m.id] || 0;
             const percent = (amount / maxSpend) * 100;
-            const isMe = m.id === currentUserId;
+            const isMe = m.user_id === currentUserId;
             return (
               <div key={m.id}>
                 <div className="flex justify-between text-sm mb-1 font-medium">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${m.color}`}></div>
-                    {m.name} {isMe && <span className="text-xs text-gray-400">(You)</span>}
+                    <Avatar member={m} size="md" />
+                      {/* ★ i18n: You (已經有了，保持) */}
+                      <span className="text-xs font-bold text-gray-700 truncate">{m.name} {isMe ? `(${t('stats.you')})` : ''}</span>
                   </div>
-                  <span className={isMe ? 'text-primary font-bold' : ''}>{formatCurrency(amount, trip.currency)}</span>
+                  <span className={isMe ? 'text-primary font-bold items-center' : ''}>{formatCurrency(amount, trip.currency)}</span>
                 </div>
                 <div className="h-3 w-full bg-gray-100 rounded-full overflow-hidden">
                   <div className={`h-full ${m.color} rounded-full transition-all duration-1000`} style={{ width: `${percent}%` }}></div>
@@ -169,21 +175,23 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
       {/* 3. 結算方案 */}
       <section>
         <div className="flex justify-between items-end mb-4 px-2">
-            <h3 className="text-lg font-bold text-gray-800">Settlement Plan</h3>
+            {/* ★ i18n: Settlement Plan */}
+            <h3 className="text-lg font-bold text-gray-800">{t('stats.settlement_plan')}</h3>
             
-            {/* ★ 匯率切換按鈕 */}
+            {/* ★ 匯率切換按鈕 i18n */}
             <button 
                 onClick={() => setShowConversion(!showConversion)}
                 className="text-xs font-bold text-primary bg-indigo-50 px-3 py-1.5 rounded-lg flex items-center gap-1 hover:bg-indigo-100 transition-colors"
             >
-               <Icons.Refresh /> {showConversion ? 'Hide Converter' : 'Convert Currency'}
+               <Icons.Refresh /> {showConversion ? t('stats.hide_converter') : t('stats.convert_currency')}
             </button>
         </div>
 
         {/* ★ 匯率輸入工具列 */}
         {showConversion && (
             <div className="bg-gray-50 p-4 rounded-2xl mb-4 border border-gray-100 animate-in slide-in-from-top-2">
-                <div className="text-xs font-bold text-gray-400 uppercase mb-2">Exchange Rate Calculator</div>
+                {/* ★ i18n: Exchange Rate Calculator */}
+                <div className="text-xs font-bold text-gray-400 uppercase mb-2">{t('stats.calculator_title')}</div>
                 <div className="flex items-center gap-2 flex-wrap">
                     {/* 1. Base Currency (唯讀) */}
                     <div className="bg-white px-3 py-2 rounded-xl font-bold text-gray-500 border border-gray-200">
@@ -212,15 +220,17 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
                     </select>
                 </div>
                 <div className="mt-2 text-[10px] text-gray-400">
-                    * Enter the agreed rate (e.g. 0.053 for JPY to HKD)
+                    {/* ★ i18n: Rate hint */}
+                    {t('stats.rate_hint')}
                 </div>
             </div>
         )}
 
         {debts.length === 0 ? (
           <div className="p-6 bg-emerald-50 rounded-3xl text-emerald-700 text-center border border-emerald-100">
-            <p className="font-bold text-lg mb-1">All settled up! 🎉</p>
-            <p className="text-sm opacity-80">No one owes anything right now.</p>
+            {/* ★ i18n: All settled */}
+            <p className="font-bold text-lg mb-1">{t('stats.all_settled_title')}</p>
+            <p className="text-sm opacity-80">{t('stats.all_settled_desc')}</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -237,12 +247,15 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
               return (
                 <div key={idx} className={`bg-white p-5 rounded-2xl shadow-sm flex items-center justify-between border-l-4 ${involvesMe ? 'border-l-primary bg-indigo-50/30' : 'border-l-pink-400'}`}>
                   <div className="flex items-center gap-3">
-                    <Avatar member={from} size="sm" />
+                    <Avatar member={from} size="md" />
                     <div className="text-sm flex flex-col">
                       <div className="flex items-center gap-1">
-                          <span className="font-bold text-gray-800">{from.id === currentUserId ? 'You' : from.name}</span>
-                          <span className="text-gray-400 text-xs">owe</span>
-                          <span className="font-bold text-gray-800">{to.id === currentUserId ? 'You' : to.name}</span>
+                          {/* ★ i18n: You or Name */}
+                          <span className="font-bold text-gray-800">{from.id === currentUserId ? t('stats.you') : from.name}</span>
+                          {/* ★ i18n: owe */}
+                          <span className="text-gray-400 text-xs">{t('stats.owe')}</span>
+                          {/* ★ i18n: You or Name */}
+                          <span className="font-bold text-gray-800">{to.id === currentUserId ? t('stats.you') : to.name}</span>
                       </div>
                     </div>
                   </div>

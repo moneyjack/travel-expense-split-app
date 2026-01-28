@@ -1,6 +1,7 @@
 // src/components/views/ShareModal.tsx
 import React, { useState } from 'react';
 import { Button } from '../ui/Button';
+import { useTranslation, Trans } from 'react-i18next'; // ★ 引入 Hook 與 Trans
 
 // 簡單的 Icon
 const Icons = {
@@ -11,6 +12,7 @@ const Icons = {
 
 export const ShareModal = ({ trip, onClose }: { trip: any; onClose: () => void }) => {
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation(); // ★ 初始化翻譯
   
   // 產生連結 (假設網域是目前的 window.location)
   // 實戰中通常是 https://yourapp.com/join/{tripId}
@@ -28,21 +30,24 @@ export const ShareModal = ({ trip, onClose }: { trip: any; onClose: () => void }
       <div className="bg-white w-full max-w-sm rounded-3xl p-6 relative z-10 animate-in zoom-in-95">
         
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-gray-800">Invite Friends</h3>
+          <h3 className="text-xl font-bold text-gray-800">{t('share.title')}</h3>
           <button onClick={onClose} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200"><Icons.Close /></button>
         </div>
 
         <div className="text-center mb-8">
             <div className="text-6xl mb-4">🌍</div>
             <p className="text-gray-500 text-sm">
-                Share this link with your friends.<br/>
-                They can join <b>{trip.name}</b> without downloading the app!
+                {t('share.desc_p1')}<br/>
+                {/* ★ 使用 Trans 處理粗體變數 */}
+                <Trans i18nKey="share.desc_p2" values={{ name: trip.name }}>
+                    They can join <b>{trip.name}</b> without downloading the app!
+                </Trans>
             </p>
         </div>
 
         <div className="bg-gray-50 p-4 rounded-2xl flex items-center gap-3 mb-6 border border-gray-100">
             <div className="flex-1 overflow-hidden">
-                <p className="text-xs font-bold text-gray-400 uppercase mb-1">Trip Link</p>
+                <p className="text-xs font-bold text-gray-400 uppercase mb-1">{t('share.link_label')}</p>
                 <p className="text-sm font-bold text-gray-800 truncate select-all">{shareUrl}</p>
             </div>
         </div>
@@ -51,7 +56,7 @@ export const ShareModal = ({ trip, onClose }: { trip: any; onClose: () => void }
             className={`w-full py-4 rounded-xl flex items-center justify-center gap-2 transition-all ${copied ? 'bg-green-500 hover:bg-green-600' : ''}`} 
             onClick={handleCopy}
         >
-            {copied ? <><Icons.Check /> Copied!</> : <><Icons.Copy /> Copy Link</>}
+            {copied ? <><Icons.Check /> {t('share.copied')}</> : <><Icons.Copy /> {t('share.copy_button')}</>}
         </Button>
       </div>
     </div>

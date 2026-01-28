@@ -173,24 +173,45 @@ const MainContent = () => {
 
             {/* 底部導航列 (Bottom Nav) - 這是共用的 */}
             <div className="fixed bottom-6 left-6 right-6">
-               <div className="bg-white rounded-3xl shadow-2xl p-2 flex justify-between items-center px-6 border border-gray-50">
-                  <button onClick={() => setActiveTripTab(TripTab.DASHBOARD)} className={activeTripTab === TripTab.DASHBOARD ? 'text-primary' : 'text-gray-300'}>
-                    Home
+              <div className="bg-white rounded-3xl shadow-2xl p-2 flex justify-between items-center px-8 border border-gray-50">
+                
+                {/* 1. Home Button (Dashboard) */}
+                <button 
+                  onClick={() => setActiveTripTab(TripTab.DASHBOARD)} 
+                  className={`p-2 transition-colors ${activeTripTab === TripTab.DASHBOARD ? 'text-primary' : 'text-gray-300 hover:text-gray-400'}`}
+                >
+                  {/* 房子 Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
+                </button>
+
+                {/* 2. 中間的大按鈕 (Add) - 保持不變 */}
+                <div className="relative -top-8">
+                  <button 
+                    onClick={() => setShowAddMenu(true)} 
+                    className="w-16 h-16 bg-primary rounded-full shadow-lg text-white border-4 border-background flex items-center justify-center active:scale-90 transition-transform"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14"/><path d="M12 5v14"/>
+                    </svg>
                   </button>
-                  {/* 中間的大按鈕 */}
-                  <div className="relative -top-8">
-                    <button 
-                      onClick={() => setShowAddMenu(true)} // 點擊打開選單
-                      className="w-16 h-16 bg-primary rounded-full shadow-lg text-white border-4 border-background flex items-center justify-center active:scale-90 transition-transform"
-                    >
-                      {/* 加一個簡單的 + 號 Icon */}
-                      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-                    </button>
-                  </div>
-                  <button onClick={() => setActiveTripTab(TripTab.STATS)} className={activeTripTab === TripTab.STATS ? 'text-primary' : 'text-gray-300'}>
-                    Stats
-                  </button>
-               </div>
+                </div>
+
+                {/* 3. Stats Button */}
+                <button 
+                  onClick={() => setActiveTripTab(TripTab.STATS)} 
+                  className={`p-2 transition-colors ${activeTripTab === TripTab.STATS ? 'text-primary' : 'text-gray-300 hover:text-gray-400'}`}
+                >
+                  {/* 長條圖 Icon */}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+
+                </button>
+
+              </div>
             </div>
           </>
         )}

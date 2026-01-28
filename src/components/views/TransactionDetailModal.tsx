@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
+import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
 
 // --- Icons ---
 const Icons = {
@@ -36,6 +37,7 @@ interface TransactionDetailModalProps {
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ expense, onClose }) => {
   // ★ 1. 引入 toggleExpenseSettled
+  const { t } = useTranslation(); // ★ 初始化翻譯
   const { trips, activeTripId, updateExpense, deleteExpense, toggleExpenseSettled, loading, isHost} = useTripContext();
   const activeTrip = trips.find(t => t.id === activeTripId);
   const members = activeTrip?.members || [];
@@ -93,7 +95,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
   };
 
   const handleDeleteExpense = async () => {
-    if (confirm("Are you sure you want to delete this entire expense? This action cannot be undone.")) {
+    if (confirm(t('transaction.alerts.delete_confirm'))) {
         await deleteExpense(expense.id);
         onClose();
     }
@@ -128,7 +130,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
   };
 
   const deleteItem = (index: number) => {
-    if (confirm("Remove this item?")) {
+    if (confirm(t('transaction.alerts.remove_item'))) {
         setEditedItems(editedItems.filter((_, i) => i !== index));
     }
   };
@@ -182,12 +184,12 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                     onChange={e => setEditedTitle(e.target.value)}
                     className="text-xl font-bold border-b border-gray-300 focus:border-primary outline-none w-full"
                     autoFocus
-                    placeholder="Shop Name"
+                    placeholder={t('transaction.title_placeholder')}
                   />
                   
                   <div className="flex gap-4">
                     <div className="flex flex-col gap-1">
-                       <label className="text-[10px] font-bold text-gray-400 uppercase">Date</label>
+                       <label className="text-[10px] font-bold text-gray-400 uppercase">{t('transaction.date')}</label>
                        <input 
                          type="date"
                          value={editedDate}
@@ -196,7 +198,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                        />
                     </div>
                     <div className="flex flex-col gap-1 flex-1">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">Paid By</label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase">{t('transaction.paid_by')}</label>
                         <select 
                           value={editedPayerId}
                           onChange={e => setEditedPayerId(e.target.value)}
@@ -214,10 +216,10 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                   <h2 className="text-xl font-bold text-gray-800 leading-tight">
                       {expense.description || expense.title}
                       {/* 狀態標記 */}
-                      {expense.is_settled && <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full align-middle">Settled</span>}
+                      {expense.is_settled && <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full align-middle">{t('transaction.settled')}</span>}
                   </h2>
                   <p className="text-xs text-gray-400 font-medium mt-1">
-                     {new Date(expense.date).toLocaleDateString()} • Paid by {members.find((m: any) => m.id === expense.payerId)?.name || 'Unknown'}
+                     {new Date(expense.date).toLocaleDateString()} • {t('dashboard.expense.paid_by', { name: members.find((m: any) => m.id === expense.payerId)?.name || t('dashboard.expense.unknown_payer') })}
                   </p>
                 </>
               )}
@@ -225,7 +227,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
            
            <div className="flex gap-2">
              {isEditing ? (
-                <Button size="sm" onClick={handleSave} disabled={loading} className="rounded-full px-4">Save</Button>
+                <Button size="sm" onClick={handleSave} disabled={loading} className="rounded-full px-4">{t('transaction.save')}</Button>
              ) : (
                 <>
                   {/* ★ 3. Settle Toggle Button */}
@@ -236,7 +238,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                         ? 'bg-green-100 text-green-600 border border-green-200' // 已結算：綠色
                         : 'bg-gray-100 text-gray-400 hover:bg-green-50 hover:text-green-500' // 未結算：灰色 -> 懸停綠色
                     }`}
-                    title={expense.is_settled ? "Mark as Unsettled" : "Mark as Settled"}
+                    title={expense.is_settled ? t('transaction.tooltips.mark_unsettled') : t('transaction.tooltips.mark_settled')}
                   >
                      <Icons.CheckCircle />
                   </button>
@@ -255,7 +257,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
               <div className="relative group cursor-pointer rounded-xl overflow-hidden border border-gray-100 bg-gray-50" onClick={() => setLightboxSrc(expense.receiptUrl)}>
                  <img src={expense.receiptUrl} className="w-full h-40 object-cover opacity-90 group-hover:scale-105 transition-transform" />
                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
-                    <span className="text-white text-xs font-bold flex items-center gap-1"><Icons.Search /> View</span>
+                    <span className="text-white text-xs font-bold flex items-center gap-1"><Icons.Search /> {t('transaction.view_receipt')}</span>
                  </div>
               </div>
            )}
@@ -263,8 +265,8 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
            {/* Items List */}
            <div className="space-y-1">
               <div className="flex justify-between items-center">
-                 <h3 className="text-xs font-bold text-gray-400 uppercase">Breakdown</h3>
-                 {isEditing && <button onClick={addItem} className="text-xs font-bold text-primary flex items-center gap-1"><Icons.Plus /> Add Item</button>}
+                 <h3 className="text-xs font-bold text-gray-400 uppercase">{t('transaction.breakdown')}</h3>
+                 {isEditing && <button onClick={addItem} className="text-xs font-bold text-primary flex items-center gap-1"><Icons.Plus /> {t('transaction.add_item')}</button>}
               </div>
 
               {displayItems.map((item: any, idx: number) => (
@@ -316,7 +318,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                                   </button>
                                 );
                              })}
-                             {item.assignedTo.length === 0 && <span className="text-[10px] text-red-400 self-center font-medium px-2">Unassigned</span>}
+                             {item.assignedTo.length === 0 && <span className="text-[10px] text-red-400 self-center font-medium px-2">{t('transaction.unassigned')}</span>}
                           </div>
                        </div>
                     ) : (
@@ -339,7 +341,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                           <div className="flex flex-wrap gap-2 pl-0.5">
                              {(!item.assignedTo || item.assignedTo.length === 0) ? (
                                <div className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap bg-gray-100 border-transparent`}>
-                                    <span className={`pl-2 text-xs font-bold text-gray-500`}> Everyone</span>
+                                    <span className={`pl-2 text-xs font-bold text-gray-500`}> {t('transaction.everyone')}</span>
                                 </div>
                              ) : (
                                item.assignedTo.map((uid: string) => {
@@ -365,7 +367,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
            
            {!isEditing && memberShares.length > 0 && (
              <div className="mt-6 pt-4 border-t border-gray-100 animate-in slide-in-from-bottom-2">
-                <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">Member Shares</h3>
+                <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">{t('transaction.member_shares')}</h3>
                 <div className="space-y-2">
                    {memberShares.map(([memberId, amount]) => {
                       const m = members.find((mem: any) => mem.id === memberId);
@@ -391,12 +393,12 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                   onClick={handleDeleteExpense}
                   className="w-full py-4 text-red-500 font-bold bg-red-50 rounded-xl hover:bg-red-100 flex items-center justify-center gap-2 transition-colors"
                 >
-                  <Icons.Trash /> Delete Expense
+                  <Icons.Trash /> {t('transaction.delete_expense')}
                 </button>
               ):
               (
                 <p className="text-center text-xs text-gray-400">
-                  Only the host can delete expenses.
+                  {t('transaction.host_only_delete')}
                 </p>
               )}
              </div>
@@ -406,7 +408,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
 
         {/* Footer Total */}
         <div className="p-5 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-            <span className="font-bold text-gray-500">Total</span>
+            <span className="font-bold text-gray-500">{t('transaction.total')}</span>
             <span className="text-2xl font-bold text-primary">${Number(displayTotal).toLocaleString()}</span>
         </div>
 
