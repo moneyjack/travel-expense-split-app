@@ -5,7 +5,6 @@ import { AppView, TripTab } from './src/types';
 import { supabase } from './src/lib/supabase'; // 確保你有這個檔案
 import { Session } from '@supabase/supabase-js';
 import './src/i18n/config'; // ★★★ 加入這一行 ★★★
-
 // --- 引入分拆出去的頁面組件 ---
 import { TripList } from './src/components/views/TripList';
 import { CreateTripView } from './src/components/views/CreateTrip';
@@ -17,10 +16,12 @@ import { TransactionDetailModal } from './src/components/views/TransactionDetail
 import { ManualEntryView } from './src/components/views/ManualEntryView'; // ★ 新增這行
 import { JoinTripView } from './src/components/views/JoinTripView'
 import Login from './src/components/Login.tsx'; // 假設你有建立 Login 組件
+import { OnboardingView } from './src/components/views/OnboardingView'; // ★ 引入
 
 
 // --- 引入 UI 組件 ---
 import { Loading } from './src/components/ui/Loading';
+import { TripRowSkeleton } from './src/components/ui/Skeleton'; // ★ 引入 Skeleton
 import { Button } from './src/components/ui/Button';
 import { processReceiptImage } from './services/openrouterService.ts'; // 引入你的服務
 import { uploadReceiptImage } from './src/lib/storage'; // 引入之前的上傳服務
@@ -51,6 +52,16 @@ const MainContent = () => {
   
   const [viewingExpense, setViewingExpense] = useState<any | null>(null);
 
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
+     // 在 Vercel/Web 環境下這是完全可以的
+     return localStorage.getItem('hasSeenOnboarding') === 'true';
+  });
+  
+  const finishOnboarding = () => {
+      setHasSeenOnboarding(true);
+      localStorage.setItem('hasSeenOnboarding', 'true');
+  };
+
   // 監聽 Supabase 登入狀態
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -69,15 +80,19 @@ const MainContent = () => {
 
   // --- 處理導航邏輯 ---
   
-  // 1. 如果正在載入，顯示 Loading
-  if (loading) {
-    return <div className="flex h-screen items-center justify-center"><Loading /></div>;
+  // // 1. 如果正在載入，顯示 Loading
+  // if (loading) {
+  //   return <div className="flex h-screen items-center justify-center"><Loading /></div>;
+  // }
+  if (!hasSeenOnboarding) {
+      return <OnboardingView onFinish={finishOnboarding} />;
   }
-
   // 2. 如果沒登入，且不是在「訪客模式」，顯示登入頁
   if (!session && appView !== AppView.GUEST_WELCOME) {
+    if (loading) return <div className="flex h-screen items-center justify-center"><Loading /></div>;
     return <Login />;
   }
+
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -107,7 +122,11 @@ const MainContent = () => {
 
     } catch (error: any) {
       console.error(error);
-      alert("處理失敗: " + error.message);
+      // ★ 5. 優化錯誤處理：引導手動輸入
+      const confirmManual = confirm("AI 讀取失敗 😭\n是否切換到手動輸入模式？");
+      if (confirmManual) {
+         setAppView(AppView.MANUAL_ENTRY);
+      }
     } finally {
       setIsAnalyzing(false);
       // 清空 input 讓使用者可以重複選同一張圖
@@ -123,6 +142,7 @@ const MainContent = () => {
         {appView === AppView.TRIP_LIST && (
           <TripList 
             trips={trips}
+            loading={loading}
             onSelectTrip={(id) => {
               setActiveTripId(id);
               setAppView(AppView.TRIP_DETAIL);

@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
+import appLogo from '../../assets/logo.png';
 
 export const JoinTripView = () => {
   const { tripId } = useParams();
@@ -122,7 +123,17 @@ export const JoinTripView = () => {
        <div className="absolute top-6 right-6"><LanguageSwitcher /></div>
        
        <div className="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md text-center">
-           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-4">✈️</div>
+           <div className="flex justify-center mb-6">
+                <img 
+                src={appLogo} 
+                alt="Logo" 
+                className="w-24 h-24 rounded-[1.5rem] shadow-lg shadow-indigo-200 hover:scale-105 transition-transform duration-300" 
+                />
+            </div>
+            <h1 className="text-2xl font-bold text-center mb-2 text-gray-900">{t('app_name')}</h1>
+                <p className="text-gray-500 text-center mb-8 text-sm">
+                {t('app_slogan')}
+                </p>
            <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('join.title', { name: tripName })}</h2>
            <p className="text-gray-500 mb-8">{t('join.question')}</p>
 

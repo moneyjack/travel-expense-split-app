@@ -1,4 +1,6 @@
 {
+    "app_name": "ClearCount",
+    "app_slogan": "Keep Bills Clear, Keep Friends Near.",
   "join": {
     "loading_details": "Loading trip details...",
     "title": "Join \"{{name}}\"",
@@ -38,7 +40,11 @@
     "no_trips": "No trips yet.",
     "host_badge": "HOST",
     "receipts_count": "{{count}} receipts",
-    "logout_tooltip": "Log Out"
+    "logout_tooltip": "Log Out",
+    "create_first_trip": "Create Your First Trip",
+    "no_trips_desc": "Time to plan your next adventure with friends!",
+    "welcome": "New!"
+
   },
   "dashboard": {
     "back_to_trips": "My Trips",
@@ -216,7 +222,7 @@
     "footer_hint": "Select an option to track your spending"
   },
   "auth": {
-    "welcome_title": "Welcome 算鳩數",
+    "welcome_title": "Welcome ClearCount",
     "check_email_title": "Check your Email",
     "email_desc": "Enter your email to sign in or create an account.",
     "otp_desc": "We've sent an 8-digit code to {{email}}",
@@ -237,5 +243,16 @@
       "enter_code": "Please enter the code",
       "invalid_code": "Invalid code or expired. Please try again."
     }
+  },
+  "onboarding": {
+    "step1_title": "Travel & Split",
+    "step1_desc": "Track every expense and split bills instantly with friends.",
+    "step2_title": "Snap Receipts",
+    "step2_desc": "Just take a photo. Our AI reads the items for you.",
+    "step3_title": "Settle Up",
+    "step3_desc": "Know exactly who owes who. Settle debts with one click.",
+    "next": "Next",
+    "start": "Let's Start!",
+    "skip": "Skip"
   }
 }

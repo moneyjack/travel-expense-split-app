@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { Button } from './ui/Button'; 
 import { LanguageSwitcher } from './ui/LanguageSwitcher'; 
 import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
+import appLogo from '../assets/logo.png';
 
 const Login = () => {
   const { t } = useTranslation(); // ★ 初始化翻譯
@@ -68,10 +69,17 @@ const Login = () => {
       <div className="bg-white w-full max-w-sm rounded-3xl shadow-xl p-8">
         
         {/* Logo or Icon */}
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-6">
-          ✈️
+        <div className="flex justify-center mb-6">
+            <img 
+              src={appLogo} 
+              alt="SWS Logo" 
+              className="w-24 h-24 rounded-[1.5rem] shadow-lg shadow-indigo-200 hover:scale-105 transition-transform duration-300" 
+            />
         </div>
-
+        <h1 className="text-2xl font-bold text-center mb-2 text-gray-900">{t('app_name')}</h1>
+        <p className="text-gray-500 text-center mb-8 text-sm">
+           {t('app_slogan')}
+        </p>
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900">
             {step === 'email' ? t('auth.welcome_title') : t('auth.check_email_title')}

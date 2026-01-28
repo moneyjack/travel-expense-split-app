@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Trip } from '../../types'; 
 import { supabase } from '../../lib/supabase';
 import { useTranslation } from 'react-i18next'; // ★ 引入 hook
+import { Skeleton } from '../ui/Skeleton';
 import { LanguageSwitcher } from '../ui/LanguageSwitcher';
+import { motion } from 'framer-motion';
 
 // --- Icons ---
 const Icons = {
@@ -33,12 +35,14 @@ interface TripListProps {
   onSelectTrip: (id: string) => void;
   onCreateTrip: () => void;
   onSimulateGuestLink: (id: string) => void;
+  loading?: boolean;
 }
 
-export const TripList: React.FC<TripListProps> = ({ trips, onSelectTrip, onCreateTrip }) => {
+export const TripList: React.FC<TripListProps> = ({ trips, onSelectTrip, onCreateTrip, loading }) => {
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const { t } = useTranslation(); // ★ 初始化翻譯函式
 
+  
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) setCurrentUserId(user.id);
@@ -56,6 +60,65 @@ export const TripList: React.FC<TripListProps> = ({ trips, onSelectTrip, onCreat
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'HKD' }).format(amount);
   };
 
+  if (loading) {
+    return (
+      <div className="p-6 min-h-screen bg-gray-50 pb-24 animate-pulse">
+        
+        {/* 1. Header Skeleton */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+             {/* 模擬 Title: "My Trips" */}
+             <Skeleton className="h-9 w-40 mb-3 rounded-lg" />
+             {/* 模擬 Subtitle: "Let's split..." */}
+             <Skeleton className="h-4 w-32 rounded-md" />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            {/* 模擬 Language Switcher */}
+            <Skeleton className="h-8 w-16 rounded-full" />
+            {/* 模擬 Logout Button */}
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          {/* 2. Create Trip Button Skeleton (虛線框按鈕) */}
+          <div className="h-20 w-full bg-gray-100 rounded-3xl border-2 border-dashed border-gray-200" />
+
+          {/* 3. Trip Cards Skeleton (模擬真實卡片) */}
+          {[1, 2, 3].map((i) => (
+             <div key={i} className="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm">
+                 {/* Top Row: Title & Amount */}
+                 <div className="flex justify-between items-start mb-3">
+                    <div className="flex flex-col gap-2 w-2/3">
+                        {/* 模擬 Trip Name */}
+                        <Skeleton className="h-7 w-1/2 rounded-lg" />
+                        {/* 模擬 Date */}
+                        <Skeleton className="h-3 w-1/3 rounded-md" />
+                    </div>
+                    {/* 模擬 Amount Pill */}
+                    <Skeleton className="h-6 w-16 rounded-lg" />
+                 </div>
+
+                 {/* Bottom Row: Avatars & Receipt Count */}
+                 <div className="flex justify-between items-center mt-6">
+                    {/* 模擬頭像群組 */}
+                    <div className="flex -space-x-2 pl-1">
+                        <Skeleton className="w-8 h-8 rounded-full border-2 border-white" />
+                        <Skeleton className="w-8 h-8 rounded-full border-2 border-white" />
+                        <Skeleton className="w-8 h-8 rounded-full border-2 border-white" />
+                    </div>
+                    
+                    {/* 模擬 "12 Receipts" Pill */}
+                    <Skeleton className="h-6 w-24 rounded-full" />
+                 </div>
+             </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="p-6 min-h-screen bg-gray-50 pb-24 animate-in fade-in">
       <div className="flex justify-between items-center mb-8">
@@ -88,9 +151,21 @@ export const TripList: React.FC<TripListProps> = ({ trips, onSelectTrip, onCreat
         </button>
 
         {trips.length === 0 ? (
-           <div className="text-center py-10 opacity-50">
-              <p>{t('home.no_trips')}</p>
-           </div>
+            <div className="flex flex-col items-center justify-center py-12 text-center animate-in zoom-in-95 duration-500">
+            <div className="w-48 h-48 bg-white rounded-full flex items-center justify-center mb-6 shadow-sm border border-gray-50 relative">
+                <span className="text-8xl">🌏</span>
+                {/* 裝飾一個小飄浮氣泡 */}
+                <div className="absolute -right-2 top-0 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full animate-bounce">
+                  {t('home.welcome')}
+                </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2">{t('home.no_trips')}</h3>
+            <p className="text-gray-400 max-w-[200px] mb-8">{t('home.no_trips_desc')}</p>
+            
+            <button onClick={onCreateTrip} className="px-8 py-3 rounded-xl shadow-lg shadow-indigo-200 bg-primary text-white font-bold hover:shadow-lg transition-all active:scale-95">
+              {t('home.create_first_trip')}
+            </button>
+          </div>
         ) : (
            trips.map((trip) => {
             const isCreator = trip.created_by === currentUserId;

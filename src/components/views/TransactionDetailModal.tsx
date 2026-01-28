@@ -103,14 +103,16 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
 
   // ★ 2. 處理切換結算狀態
   const handleToggleSettle = async () => {
-      const action = expense.is_settled ? "re-open (unsettle)" : "settle";
-      // 這裡你可以選擇要不要 confirm，如果不想要彈窗確認，可以直接呼叫
-      if (confirm(`Do you want to ${action} this expense?`)) {
+      // 根據當前狀態選擇正確的翻譯字串
+      const confirmMessage = expense.is_settled 
+        ? t('transaction.alerts.unsettle_confirm') 
+        : t('transaction.alerts.settle_confirm');
+
+      if (confirm(confirmMessage)) {
           await toggleExpenseSettled(expense.id, expense.is_settled);
           onClose(); // 切換後關閉視窗，讓使用者在 Dashboard 看到變灰的效果
       }
   };
-
   const updateItem = (index: number, field: string, value: any) => {
     const newItems = [...editedItems];
     newItems[index] = { ...newItems[index], [field]: value };
