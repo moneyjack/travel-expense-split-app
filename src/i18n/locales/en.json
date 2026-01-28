@@ -205,7 +205,9 @@
     "confirm_btn": "Confirm Receipt",
     "receipt_image_title": "Receipt Image",
     "default_item_name": "New Item",
-    "delete_confirm": "Delete this item?"
+    "delete_confirm": "Delete this item?",
+    "items_sum": "Items Sum",
+    "adjustment": "Adjustment"
   },
   "action_sheet": {
     "title": "Add Expense",

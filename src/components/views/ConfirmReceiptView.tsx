@@ -83,10 +83,66 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
     newItems[index].assignedTo = members.map(m => m.id);
     setItems(newItems);
   };
-
+  const calculatedTotal = items.reduce((sum, item) => sum + Number(item.price), 0);
+  const [manualTotal, setManualTotal] = useState<number>(calculatedTotal);
   const handleSave = async () => {
+    let finalItems = [...items];
+    // 1. 計算原始總額 (項目加總)
+    
+    
+    // 2. 計算差額 (手動輸入總額 - 項目加總)
+    const diff = manualTotal - calculatedTotal;
+
+    // 如果有差額 (大於 1 避免浮點數誤差)
+    if (Math.abs(diff) > 1) {
+        
+        // --- ★★★ 核心邏輯：按消費比例自動分配差額 ★★★ ---
+
+        // A. 先算每個人在這張單原本要負擔多少錢 (Subtotal per person)
+        const memberShares: Record<string, number> = {};
+        let totalParticipatingAmount = 0;
+
+        items.forEach(item => {
+            const itemPrice = Number(item.price);
+            const splitCount = item.assignedTo.length;
+            
+            if (splitCount > 0) {
+                const perPerson = itemPrice / splitCount; // 該項目每人分攤多少
+                
+                item.assignedTo.forEach(memberId => {
+                    memberShares[memberId] = (memberShares[memberId] || 0) + perPerson;
+                    totalParticipatingAmount += perPerson;
+                });
+            }
+        });
+
+        // B. 根據比例，為每個人建立一個「專屬的」調整項目
+        // 這樣做是因為我們的資料庫不支援「單一項目按權重分」，所以我們拆成多個小項目
+        Object.entries(memberShares).forEach(([memberId, shareAmount]) => {
+            if (totalParticipatingAmount > 0) {
+                // 算出這個人的消費佔比
+                const ratio = shareAmount / totalParticipatingAmount;
+                // 算出他應得的折扣金額
+                const memberRefund = diff * ratio;
+
+                // 只有金額大於 0.01 才建立項目
+                if (Math.abs(memberRefund) > 0.01) {
+                    finalItems.push({
+                        // 名稱加上 (Auto) 方便識別，如果是負數就是 Tax Refund
+                        name: diff < 0 ? 'Tax Refund (Auto)' : 'Service Charge (Auto)',
+                        quantity: 1,
+                        // 修正小數點位數
+                        price: parseFloat(memberRefund.toFixed(2)), 
+                        // ★ 關鍵：這個折扣項目只屬於他自己 (Assigned ONLY to him)
+                        assignedTo: [memberId] 
+                    });
+                }
+            }
+        });
+    }
+
     const finalTitle = `${shopName}`; 
-    await createExpense(finalTitle, payerId, items, receiptUrl, date); 
+    await createExpense(finalTitle, payerId, finalItems, receiptUrl, date); 
   };
 
   const grandTotal = items.reduce((sum, item) => sum + Number(item.price), 0);
@@ -166,7 +222,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
       </div>
 
       {/* 2. 項目列表 */}
-      <div className="space-y-3">
+      <div className="space-y-3 pb-20">
         {items.map((item, idx) => (
           <div key={idx} className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 relative group">
             <button 
@@ -250,15 +306,44 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
 
       {/* 底部總計 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 p-5 pb-8 shadow-2xl z-30">
-        <div className="flex justify-between items-end mb-3">
-           <span className="text-gray-400 text-sm font-bold">{t('confirm_receipt.total_amount')}</span>
-           <span className="text-2xl font-bold text-gray-900">${grandTotal.toLocaleString()}</span>
+        <div className="flex justify-between items-center mb-3">
+           <div className="flex flex-col">
+              <span className="text-gray-400 text-sm font-bold">{t('confirm_receipt.total_amount')}</span>
+              {/* 提示字：如果有差額 */}
+              {Math.abs(manualTotal - calculatedTotal) > 1 && (
+                  <span className={`text-[10px] font-bold ${manualTotal < calculatedTotal ? 'text-green-500' : 'text-red-500'}`}>
+                    {manualTotal < calculatedTotal ? 'Discount detected (Auto-added)' : 'Extra charges detected'}
+                  </span>
+              )}
+           </div>
+
+           {/* ★ 改成可編輯的 Input */}
+           <div className="flex items-center gap-1 border-b border-gray-200 focus-within:border-primary transition-colors">
+             <span className="text-2xl font-bold text-gray-900">$</span>
+             <input 
+               type="number"
+               value={manualTotal}
+               // 當用戶輸入時，更新 manualTotal
+               onChange={(e) => setManualTotal(Number(e.target.value))}
+               // 點擊時自動選取，方便修改
+               onFocus={(e) => e.target.select()}
+               className="text-2xl font-bold text-gray-900 w-32 text-right outline-none bg-transparent p-1"
+             />
+           </div>
         </div>
+        
+        {/* 顯示差額明細，讓用戶安心 */}
+        {Math.abs(manualTotal - calculatedTotal) > 1 && (
+             <div className="mb-3 bg-gray-50 p-2 rounded-lg text-xs text-gray-500 flex justify-between animate-in fade-in">
+                <span>{t('confirm_receipt.items_sum')}: {calculatedTotal.toLocaleString()}</span>
+                <span>{t('confirm_receipt.adjustment')}: {manualTotal - calculatedTotal > 0 ? '+' : ''}{(manualTotal - calculatedTotal).toLocaleString()}</span>
+             </div>
+        )}
+
         <Button onClick={handleSave} disabled={loading} className="w-full py-3.5 text-lg rounded-xl shadow-lg shadow-indigo-200">
-          {loading ? t('confirm_receipt.saving') : t('confirm_receipt.confirm_btn')}
+           {loading ? t('confirm_receipt.saving') : t('confirm_receipt.confirm_btn')}
         </Button>
       </div>
-
       {/* 全螢幕圖片檢視 Modal */}
       {isImageZoomed && receiptUrl && (
         <div className="fixed inset-0 z-[60] bg-black flex flex-col animate-in fade-in duration-200">

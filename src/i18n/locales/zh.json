@@ -205,7 +205,9 @@
     "confirm_btn": "確認收據",
     "receipt_image_title": "收據圖片",
     "default_item_name": "新品項",
-    "delete_confirm": "刪除此項目？"
+    "delete_confirm": "刪除此項目？",
+    "items_sum": "品項總和",
+    "adjustment": "調整金額"
   },
   "action_sheet": {
     "title": "新增支出",

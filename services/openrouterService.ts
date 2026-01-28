@@ -45,25 +45,35 @@ export const processReceiptImage = async (base64Image: string): Promise<ParseRes
     ### 1. EXTRACTION & TRANSLATION RULES
     Analyze the image and extract line items. For each item:
     
-    1.  **Extract**: Read the text (e.g., "すき焼きうどん").
-    2.  **Translate**: Convert it to Hong Kong Chinese (e.g., "壽喜燒烏冬").
-        * "鶏クリームうどん" -> "雞肉忌廉烏冬"
-        * "Fried Rice" -> "炒飯"
-        * "Beer" -> "啤酒"
+    1.  **Extract**: Read the text (e.g., "テラリウムコレクション").
+    2.  **Translate**: Convert it to Hong Kong Chinese (e.g., "Pokemon 盆景模型").
     3.  **Assign**: Put the *translated* text into the "name" field.
     
-    **DO NOT return Japanese or English text in the "name" field unless it is a specific brand name without a translation.**
+    ### 2. PRICE PARSING LOGIC (CRITICAL FOR JAPANESE RECEIPTS)
+    Japanese receipts often list multiple prices for one item. You must follow these priorities:
+    
+    * **RULE 1 (Target)**: Always extract the **Original / Standard Price** (usually the top line or the higher number).
+    * **RULE 2 (Ignore)**: **COMPLETELY IGNORE** any lines or numbers labeled with:
+        * "免税後販売額" (Tax-free sales amount)
+        * "税抜" (Tax excluded)
+        * "内税" (Tax included amount shown separately)
+        * "割引" (Discount amount shown separately)
+    
+    * **Example Case (Pokemon Center)**:
+        * Line 1: "Item A ... ¥3,300"  <-- **EXTRACT THIS (3300)**
+        * Line 2: "免税後販売額 ... ¥2,999" <-- **IGNORE THIS**
+    
+    * **Logic**: We want the **Gross Price**. The user will calculate the discount manually later.
 
-    ### 2. LAYOUT PARSING
-    - **Quantity**: Look for numbers before "点", "x", or counts. Default to 1.
-    - **Price**: Use the **Total Price** for that line (usually the rightmost number). Ignore unit prices.
-    - **Merge**: If an item takes two lines (Name + Modifier), combine them into one string.
+    ### 3. LAYOUT PARSING
+    - **Quantity**: Look for numbers before "点", "x", or counts (e.g., @1,650 x 2). If found, calculate Total = Unit Price * Qty.
+    - **Merge**: If an item name spans multiple lines, combine them.
 
-    ### 3. METADATA
-    - **Shop Name**: Extract the most prominent text at the top.
+    ### 4. METADATA
+    - **Shop Name**: Extract the most prominent text (e.g., Pokemon Center).
     - **Date**: Extract YYYY-MM-DD. If missing, use TODAY.
 
-    ### 4. OUTPUT FORMAT
+    ### 5. OUTPUT FORMAT
     Return ONLY raw JSON. No markdown.
     
     Example Output:
