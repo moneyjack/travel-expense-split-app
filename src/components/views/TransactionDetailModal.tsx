@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
 import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
+import { formatCurrency } from '../../utils/currency';
 
 // --- Icons ---
 const Icons = {
@@ -387,7 +388,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                              })}
                              {item.assignedTo.length === 0 && <span className="text-[10px] text-red-400 self-center font-medium px-2">{t('transaction.unassigned')}</span>}
                           </div>
-                          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                          <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none" />
                           </div>
 
                        <hr/>       
@@ -404,7 +405,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                                 </span>
                              </div>
                              <span className="w-16 shrink-0 text-sm font-bold text-gray-900 text-right pt-1">
-                                ${Number(item.price).toLocaleString()}
+                                {formatCurrency(item.price, activeTrip.currency)}
                              </span>
                           </div>
                           
@@ -451,7 +452,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                               <Avatar member={m} size="sm" />
                               <span className="text-sm font-bold text-gray-700">{m.name}</span>
                            </div>
-                           <span className="text-sm font-bold text-gray-900">${amount.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 1})}</span>
+                           <span className="text-sm font-bold text-gray-900">{formatCurrency(amount, activeTrip.currency)}</span>
                         </div>
                       );
                    })}
@@ -482,7 +483,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
         {/* Footer Total */}
         <div className="p-5 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
             <span className="font-bold text-gray-500">{t('transaction.total')}</span>
-            <span className="text-2xl font-bold text-primary">${Number(displayTotal).toLocaleString()}</span>
+            <span className="text-2xl font-bold text-primary">{formatCurrency(displayTotal, activeTrip.currency)}</span>
         </div>
 
       </div>

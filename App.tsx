@@ -48,7 +48,7 @@ const MainContent = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false); // 加入分析中的狀態
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [scanResult, setScanResult] = useState<{shopName: string, date: string, items: any[]} | null>(null);
+  const [scanResult, setScanResult] = useState<{shopName: string, date: string, items: any[], icon: string} | null>(null);
   const [scannedImage, setScannedImage] = useState<string>('');
   
   const [viewingExpense, setViewingExpense] = useState<any | null>(null);

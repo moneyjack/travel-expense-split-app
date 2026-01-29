@@ -37,6 +37,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
 
   // State 初始化
   const [shopName, setShopName] = useState(scanResult.shopName || 'Restaurant');
+  const [icon, setIcon] = useState(scanResult.icon || '💸');
   const [date, setDate] = useState(scanResult.date || new Date().toISOString().split('T')[0]);
   const [items, setItems] = useState<EditingItem[]>(
     scanResult.items.map(i => ({
@@ -144,7 +145,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
     }
 
     const finalTitle = `${shopName}`; 
-    await createExpense(finalTitle, payerId, finalItems, receiptUrl, date); 
+    await createExpense(finalTitle, payerId, finalItems, receiptUrl, date, icon); 
   };
 
   const grandTotal = items.reduce((sum, item) => sum + Number(item.price), 0);
@@ -229,12 +230,12 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
           <div key={idx} className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 relative group">
             <button 
               onClick={() => deleteItem(idx)}
-              className="absolute top-2 right-2 p-2 bg-gray-50 rounded-full hover:bg-red-50 transition-colors"
+              className="absolute top-4 right-2 p-2 rounded-full hover:bg-red-50 transition-colors"
             >
               <Icons.Trash />
             </button>
 
-            <div className="flex gap-2 items-start mb-3 pr-8">
+            <div className="flex gap-2 items-start  pr-8">
               <div className="w-10">
                  <label className="text-[9px] text-gray-400 font-bold uppercase text-center block">{t('confirm_receipt.qty_label')}</label>
                  <input 
@@ -263,45 +264,49 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
               </div>
             </div>
 
-            <div className="flex gap-2 overflow-x-auto no-scrollbar py-2 border-t border-gray-50 mt-2 items-center">
-               <button
-                  onClick={() => handleSplitAll(idx)}
-                  className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all shrink-0 ${
-                    item.assignedTo.length === members.length 
-                      ? 'bg-indigo-50 text-primary border-indigo-100' 
-                      : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
-                  }`}
-               >
-                  <Icons.Users /> {t('confirm_receipt.split_all')}
-               </button>
-               <div className="w-[1px] h-5 bg-gray-100 shrink-0"></div>
-               {members.map(member => {
-                 const isSelected = item.assignedTo.includes(member.id);
-                 return (
-                   <button
-                     key={member.id}
-                     onClick={() => toggleMemberForItem(idx, member.id)}
-                     className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap shrink-0 ${
-                        isSelected 
-                        ? `bg-indigo-50 border-${member.color.replace('bg-', '')} ring-1 ring-${member.color.replace('bg-', '')}` 
-                        : 'bg-white border-gray-100 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'
-                     }`}
-                   >
-                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] shadow-sm ${member.color}`}>
-                       {member.avatar}
-                     </div>
-                     <span className={`text-xs font-bold ${isSelected ? 'text-gray-900' : 'text-gray-400'}`}>
-                        {member.name}
-                     </span>
-                   </button>
-                 );
-               })}
-               <div className="flex items-center ml-auto pl-2 border-l border-gray-100">
-                 <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
-                   {item.assignedTo.length === 0 ? t('confirm_receipt.nobody') : `${item.assignedTo.length}/${members.length}`}
-                 </span>
-               </div>
-            </div>
+            <div className="relative group w-full overflow-hidden"> {/* 1. 外層加上 relative 和 overflow-hidden */}
+              <div className="flex gap-2 overflow-x-auto no-scrollbar py-2 border-t border-gray-50 mt-2 items-center">
+                <button
+                    onClick={() => handleSplitAll(idx)}
+                    className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all shrink-0 ${
+                      item.assignedTo.length === members.length 
+                        ? 'bg-indigo-50 text-primary border-indigo-100' 
+                        : 'bg-gray-50 text-gray-500 border-gray-100 hover:bg-gray-100'
+                    }`}
+                >
+                    <Icons.Users /> {t('confirm_receipt.split_all')}
+                </button>
+                <div className="w-[1px] h-5 bg-gray-100 shrink-0"></div>
+                {members.map(member => {
+                  const isSelected = item.assignedTo.includes(member.id);
+                  return (
+                    <button
+                      key={member.id}
+                      onClick={() => toggleMemberForItem(idx, member.id)}
+                      className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap shrink-0 ${
+                          isSelected 
+                          ? `bg-indigo-50 border-${member.color.replace('bg-', '')} ring-1 ring-${member.color.replace('bg-', '')}` 
+                          : 'bg-white border-gray-100 opacity-60 grayscale hover:opacity-100 hover:grayscale-0'
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] shadow-sm ${member.color}`}>
+                        {member.avatar}
+                      </div>
+                      <span className={`text-xs font-bold ${isSelected ? 'text-gray-900' : 'text-gray-400'}`}>
+                          {member.name}
+                      </span>
+                    </button>
+                  );
+                })}
+                <div className="flex items-center ml-auto pl-2 border-l border-gray-100">
+                  <span className="text-[10px] text-gray-400 font-medium whitespace-nowrap">
+                    {item.assignedTo.length === 0 ? t('confirm_receipt.nobody') : `${item.assignedTo.length}/${members.length}`}
+                  </span>
+                </div>
+              </div>
+              <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                         
+              </div>
           </div>
         ))}
       </div>
@@ -321,7 +326,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
 
            {/* ★ 改成可編輯的 Input */}
            <div className="flex items-center gap-1 border-b border-gray-200 focus-within:border-primary transition-colors">
-             <span className="text-2xl font-bold text-gray-900">$</span>
+             <span className="text-2xl font-bold text-gray-900">{activeTrip.currency}</span>
              <input 
                type="number"
                value={manualTotal}
