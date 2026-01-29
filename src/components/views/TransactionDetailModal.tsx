@@ -13,7 +13,7 @@ const Icons = {
   Users: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   CheckCircle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
 };
-
+const EMOJI_OPTIONS = ["🍔", "🍜", "☕", "🍺", "🚕", "✈️", "🛍️", "🎁", "🏨", "🎫", "🛒", "💸"];
 // --- Sub-components ---
 const Avatar = ({ member, size = 'sm' }: { member: any, size?: 'sm' | 'md' }) => (
   <div className={`${size === 'sm' ? 'w-6 h-6 text-xs' : 'w-10 h-10 text-lg'} ${member.color} rounded-full flex items-center justify-center text-white font-bold shadow-sm border border-white`}>
@@ -52,6 +52,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
   const [editedDate, setEditedDate] = useState(new Date(expense.date).toISOString().split('T')[0]);
   const [editedItems, setEditedItems] = useState<any[]>([]);
 
+  const [editedIcon, setEditedIcon] = useState((expense as any).icon || '💸');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
   // Initialize buffer when opening edit mode
   useEffect(() => {
     if (isEditing) {
@@ -62,6 +65,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
             ...i,
             assignedTo: i.assignedTo || [] 
         }));
+        setEditedIcon((expense as any).icon || '💸')
         setEditedItems(itemsCopy);
     }
   }, [isEditing, expense]);
@@ -85,7 +89,8 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
               title: editedTitle, 
               amount: newTotal,
               payer_id: editedPayerId,
-              date: editedDate 
+              date: editedDate ,
+              icon: editedIcon
           }, 
           finalizedItems // 使用處理過的 items
       );
@@ -182,52 +187,60 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
       <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative flex flex-col max-h-[90vh] animate-in zoom-in-95 overflow-hidden">
         
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 flex justify-between items-start z-10 bg-white border-b border-gray-50">
+        <div className="px-6 pt-6 flex justify-between items-start z-10 bg-white">
            <div className="flex-1 mr-4 space-y-2">
               {isEditing ? (
                 <>
-                  <input 
+                  {/* ★ Emoji Selector */}
+                  <div className="relative flex items-center  mb-2">
+                      <button 
+                          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                          className="w-16 h-12 bg-gray-100 rounded-2xl flex items-center justify-center text-2xl hover:bg-gray-200 transition-colors "
+                      >
+                          {editedIcon}
+                      </button>
+                      
+                      {/* Simple Emoji Picker Popup */}
+                      {showEmojiPicker && (
+                          <div className="absolute top-14 left-0 bg-white shadow-xl rounded-2xl p-2 grid grid-cols-4 gap-1 w-48 border border-gray-100 z-20 animate-in zoom-in-95">
+                              {EMOJI_OPTIONS.map(emoji => (
+                                  <button 
+                                    key={emoji}
+                                    onClick={() => { setEditedIcon(emoji); setShowEmojiPicker(false); }}
+                                    className="w-10 h-10 hover:bg-gray-100 rounded-xl flex items-center justify-center text-xl transition-colors"
+                                  >
+                                      {emoji}
+                                  </button>
+                              ))}
+                          </div>
+                      )}
+
+                      <input 
                     value={editedTitle} 
                     onChange={e => setEditedTitle(e.target.value)}
-                    className="text-xl font-bold border-b border-gray-300 focus:border-primary outline-none w-full"
+                    className="ml-4 text-xl font-bold border-b border-gray-300 focus:border-primary outline-none w-full"
                     autoFocus
                     placeholder={t('transaction.title_placeholder')}
                   />
-                  
-                  <div className="flex gap-4">
-                    <div className="flex flex-col gap-1">
-                       <label className="text-[10px] font-bold text-gray-400 uppercase">{t('transaction.date')}</label>
-                       <input 
-                         type="date"
-                         value={editedDate}
-                         onChange={e => setEditedDate(e.target.value)}
-                         className="bg-gray-100 border-none rounded-lg px-2 py-1 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary/20"
-                       />
-                    </div>
-                    <div className="flex flex-col gap-1 flex-1">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase">{t('transaction.paid_by')}</label>
-                        <select 
-                          value={editedPayerId}
-                          onChange={e => setEditedPayerId(e.target.value)}
-                          className="bg-gray-100 border-none rounded-lg px-2 py-1 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary/20 w-full"
-                        >
-                          {members.map((m: any) => (
-                            <option key={m.id} value={m.id}>{m.name}</option>
-                          ))}
-                        </select>
-                    </div>
                   </div>
+                  
                 </>
               ) : (
                 <>
-                  <h2 className="text-xl font-bold text-gray-800 leading-tight">
-                      {expense.description || expense.title}
-                      {/* 狀態標記 */}
-                      {expense.is_settled && <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full align-middle">{t('transaction.settled')}</span>}
-                  </h2>
-                  <p className="text-xs text-gray-400 font-medium mt-1">
-                     {new Date(expense.date).toLocaleDateString()} • {t('dashboard.expense.paid_by', { name: members.find((m: any) => m.id === expense.payerId)?.name || t('dashboard.expense.unknown_payer') })}
-                  </p>
+                 <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-2xl shrink-0">
+                        {(expense as any).icon || '💸'}
+                    </div>
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-800 leading-tight">
+                            {expense.description || expense.title}
+                            {expense.is_settled && <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full align-middle">{t('transaction.settled')}</span>}
+                        </h2>
+                        <p className="text-xs text-gray-400 font-medium mt-1">
+                           {new Date(expense.date).toLocaleDateString()} • {t('dashboard.expense.paid_by', { name: members.find((m: any) => m.id === expense.payerId)?.name || t('dashboard.expense.unknown_payer') })}
+                        </p>
+                    </div>
+                </div>
                 </>
               )}
            </div>
@@ -251,12 +264,41 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                   </button>
 
                   <button onClick={() => setIsEditing(true)} className="p-2 text-primary hover:bg-indigo-50 rounded-full"><Icons.Pencil /></button>
-                  <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><Icons.Close /></button>
+                  {/* <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><Icons.Close /></button> */}
                 </>
              )}
            </div>
-        </div>
 
+
+                  
+                
+        </div>
+  
+          {isEditing ? (
+            <div className="flex gap-4 px-6 pb-4 shadow-md z-1">
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-bold text-gray-400 uppercase">{t('transaction.date')}</label>
+              <input 
+                type="date"
+                value={editedDate}
+                onChange={e => setEditedDate(e.target.value)}
+                className="bg-gray-100 border-none rounded-lg px-2 py-1 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            <div className="flex flex-col gap-1 flex-1">
+                <label className="text-[10px] font-bold text-gray-400 uppercase">{t('transaction.paid_by')}</label>
+                <select 
+                  value={editedPayerId}
+                  onChange={e => setEditedPayerId(e.target.value)}
+                  className="bg-gray-100 border-none rounded-lg px-2 py-1 text-sm font-bold text-gray-800 outline-none focus:ring-2 focus:ring-primary/20 w-full"
+                >
+                  {members.map((m: any) => (
+                    <option key={m.id} value={m.id}>{m.name}</option>
+                  ))}
+                </select>
+            </div>
+          </div>
+          ) : null}
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
            {/* Receipt Image */}
@@ -281,7 +323,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                 const isAssignedToEveryone = item.assignedTo && item.assignedTo.length === members.length && members.every((m:any) => item.assignedTo.includes(m.id));
 
                 return(
-                 <div key={idx} className={`flex items-start justify-between ${isEditing ? 'bg-gray-50 p-3 rounded-xl border border-gray-100' : 'py-1'}`}>
+                 <div key={idx} className={`flex items-start justify-between ${isEditing ? 'py-1' : 'py-1'}`}>
                     {isEditing ? (
                        // --- EDIT MODE ROW ---
                        <div className="w-full space-y-2">
@@ -305,12 +347,13 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                                type="number"
                                value={item.price} 
                                onChange={e => updateItem(idx, 'price', Number(e.target.value))}
-                               className="w-20 bg-white border border-gray-200 rounded px-2 py-1 text-sm font-bold text-right outline-none"
+                               className="w-14 bg-white border border-gray-200 rounded px-2 py-1 text-sm font-bold text-right outline-none"
                              />
                              <button onClick={() => deleteItem(idx)} className="text-red-400 p-1"><Icons.Trash /></button>
                           </div>
                           
                           {/* Member Selector */}
+                          <div className="relative group w-full overflow-hidden"> {/* 1. 外層加上 relative 和 overflow-hidden */}
                             <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1 pb-1">
                               <button
                                 onClick={() => handleSplitAll(idx)}
@@ -323,7 +366,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                                 <Icons.Users /> {t('confirm_receipt.split_all')}
                              </button>
                              
-                             <div className="w-[1px] h-4 bg-gray-200 shrink-0 mx-1"></div>
+                             <div className="w-[1px] h-8 bg-gray-200 shrink-0 mx-1"></div>
 
                              {members.map((m: any) => {
                                 const isSelected = item.assignedTo.includes(m.id);
@@ -344,8 +387,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                              })}
                              {item.assignedTo.length === 0 && <span className="text-[10px] text-red-400 self-center font-medium px-2">{t('transaction.unassigned')}</span>}
                           </div>
-                       </div>
-                    ) : (
+                          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-white to-transparent pointer-events-none" />
+                          </div>
+
+                       <hr/>       
+                       </div>             ) : (
                     // --- VIEW MODE ROW ---
                        <div className="py-1 border-b border-gray-50 last:border-0 w-full">
                           <div className="flex items-start w-full gap-3 mb-2">
@@ -357,7 +403,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                                   x{item.quantity}
                                 </span>
                              </div>
-                             <span className="w-20 shrink-0 text-sm font-bold text-gray-900 text-right pt-1">
+                             <span className="w-16 shrink-0 text-sm font-bold text-gray-900 text-right pt-1">
                                 ${Number(item.price).toLocaleString()}
                              </span>
                           </div>
@@ -414,7 +460,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
            )}
 
            {isEditing && (
-             <div className="pt-6 border-t border-gray-100 mt-4">
+             <div className="pt-6 ">
               {isHost ? (
                 <button 
                   onClick={handleDeleteExpense}

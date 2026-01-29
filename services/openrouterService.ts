@@ -83,10 +83,17 @@ export const processReceiptImage = async (base64Image: string, language: string 
     - **Quantity**: Look for numbers before "点", "x", or counts (e.g., @1,650 x 2). If found, calculate Total = Unit Price * Qty.
     - **Merge**: If an item name spans multiple lines, combine them.
 
-    ### 4. METADATA
+    ### 4. METADATA & CATEGORIZATION (★ UPDATED)
     - **Shop Name**: Extract the most prominent text.
-    - **Date**: Extract YYYY-MM-DD. If missing, use TODAY.
-
+    - **Date**: Extract YYYY-MM-DD.
+    - **Icon**: Analyze the receipt content and pick ONE single emoji that best represents the expense category.
+       - Food/Drink: 🍔, 🍜, ☕, 🍺, 🍱, 🍞
+       - Transport: 🚕, 🚇, ✈️, ⛽, 🚂
+       - Shopping: 🛍️, 👕, 👟, 💍, 🕶️
+       - Entertainment: 🎬, 🎟️, 🎤, 🎡
+       - Accommodation: 🏨, 🏠
+       - Supermarket/Groceries: 🛒, 🍎, 🧻
+       - Others: 💸 (Use this if unsure)
     ### 5. OUTPUT FORMAT
     Return ONLY raw JSON. No markdown.
     
@@ -94,6 +101,7 @@ export const processReceiptImage = async (base64Image: string, language: string 
     {
       "shopName": "Restaurant Name",
       "date": "2026-01-21",
+      "icon": "🍜",
       "items": [
         { "name": "Item A", "quantity": 1, "price": 1880 },
         { "name": "Item B", "quantity": 1, "price": 1630 }
@@ -128,7 +136,7 @@ export const processReceiptImage = async (base64Image: string, language: string 
     const cleanJson = content.replace(/```json/g, '').replace(/```/g, '').trim();
     
     const result = JSON.parse(cleanJson);
-
+    if (!result.icon) result.icon = '💸'; // 預設值
     // 日期防呆
     if (result.date === 'TODAY' || !result.date) {
         result.date = new Date().toISOString().split('T')[0];

@@ -175,9 +175,16 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({ trip, onViewExpens
                       }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`p-3 rounded-2xl shrink-0 ${exp.is_settled ? 'bg-gray-200 text-gray-400' : 'bg-indigo-50 text-primary'}`}>
-                              {exp.is_settled ? <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg> : <Icons.Receipt />} 
+                          {/* ★ 修改：顯示 Emoji 或預設圖示 */}
+                          <div className={`w-12 h-12 flex items-center justify-center rounded-2xl shrink-0 text-2xl transition-colors ${
+                             exp.is_settled 
+                             ? 'bg-gray-200 opacity-50' 
+                             : 'bg-indigo-50'
+                          }`}>
+                              {/* 優先顯示 icon，沒有則顯示預設 Emoji */}
+                              {(exp as any).icon || '💸'}
                           </div>
+
                           <div className="min-w-0">
                               <p className={`font-bold line-clamp-1 break-all ${exp.is_settled ? 'text-gray-500 line-through decoration-2' : 'text-gray-800'}`}>
                                   {exp.description}

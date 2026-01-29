@@ -31,7 +31,7 @@ interface TripContextType {
     // --- Actions ---
     fetchTrips: () => Promise<void>;
     createTrip: (name: string, ghostMembers: Partial<Member>[], currency?: string) => Promise<void>;
-    createExpense: (title: string, payerId: string, items: any[], receiptUrl?: string, date?: string) => Promise<void>;
+    createExpense: (title: string, payerId: string, items: any[], receiptUrl?: string, date?: string, icon?: string) => Promise<void>;
     updateExpense: (expenseId: string, updates: Partial<any>, items?: any[]) => Promise<void>;
     deleteExpense: (expenseId: string) => Promise<void>;
 
@@ -137,7 +137,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
                             price: Number(i.price),
                             quantity: Number(i.quantity),
                             assignedTo: i.assigned_to_ids || []
-                        }))
+                        })),
+                        icon: e.icon || '💸'
+                        
                     }))
                 }));
                 setTrips(formattedTrips);
@@ -195,7 +197,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
 
     // ★ 2. Create Expense (關鍵修正：寫入 receiptUrl 和 date)
-    const createExpense = async (title: string, payerId: string, items: any[], receiptUrl?: string, date?: string) => {
+    const createExpense = async (title: string, payerId: string, items: any[], receiptUrl?: string, date?: string,icon: string = '💸') => {
         if (!activeTripId) return;
         setLoading(true);
 
@@ -211,7 +213,8 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     payer_id: payerId,
                     receipt_image_url: receiptUrl || null, // ★ 確保寫入圖片網址
                     date: date || new Date().toISOString(), // ★ 確保寫入日期
-                    created_at: new Date().toISOString()
+                    created_at: new Date().toISOString(),
+                    icon: icon // ★ 寫入圖示
                 }])
                 .select()
                 .single();
@@ -336,7 +339,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     // 2. 修改成員 (名字、頭像、顏色)
-    const updateMember = async (memberId: string, updates: { name?: string; avatar?: string; color?: string }) => {
+    const updateMember = async (memberId: string, updates: { name?: string; avatar?: string; color?: string; icon?: string }) => {
         setLoading(true);
         try {
         // ★ 正確：更新 trip_members 表
