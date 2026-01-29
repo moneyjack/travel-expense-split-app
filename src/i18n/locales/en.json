@@ -215,7 +215,12 @@
     "default_item_name": "New Item",
     "delete_confirm": "Delete this item?",
     "items_sum": "Items Sum",
-    "adjustment": "Adjustment"
+    "adjustment": "Adjustment",
+    "discount_detected": "Discount detected (Auto-added)",
+    "extra_charges_detected": "Extra charges detected (Auto-added)",
+    "discount_detected_item": "Discount (Auto)",
+    "extra_charges_detected_item": "Extra Charges (Auto)"
+
   },
   "action_sheet": {
     "title": "Add Expense",

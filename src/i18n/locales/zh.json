@@ -34,7 +34,7 @@
 },
 "home": {
     "title": "我的旅程",
-    "subtitle": "數還數，路還路。旅行計錢無難度！",
+    "subtitle": "數還數，路還路。",
     "create_trip": "建立新旅程",
     "logout_confirm": "你確定要登出嗎？",
     "no_trips": "目前還沒有旅程。",
@@ -214,7 +214,11 @@
     "default_item_name": "新項目",
     "delete_confirm": "刪除此項目？",
     "items_sum": "項目總和",
-    "adjustment": "調整金額"
+    "adjustment": "調整金額",
+    "discount_detected": "偵測到折扣 (自動新增)",
+    "extra_charges_detected": "偵測到額外費用 (自動新增)",
+    "discount_detected_item": "折扣 (自動)",
+    "extra_charges_detected_item": "服務費 (自動)"
   },
   "action_sheet": {
     "title": "新增支出",

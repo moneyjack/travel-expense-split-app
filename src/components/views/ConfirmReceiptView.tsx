@@ -103,7 +103,9 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
         let totalParticipatingAmount = 0;
 
         items.forEach(item => {
+          
             const itemPrice = Number(item.price);
+            if (itemPrice <= 0 || isNaN(itemPrice) || itemPrice === null) return; // 跳過價格為 0 的項目
             const splitCount = item.assignedTo.length;
             
             if (splitCount > 0) {
@@ -129,7 +131,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                 if (Math.abs(memberRefund) > 0.01) {
                     finalItems.push({
                         // 名稱加上 (Auto) 方便識別，如果是負數就是 Tax Refund
-                        name: diff < 0 ? 'Tax Refund (Auto)' : 'Service Charge (Auto)',
+                        name: diff < 0 ? t('confirm_receipt.discount_detected_item') : t('confirm_receipt.extra_charges_detected_item'),
                         quantity: 1,
                         // 修正小數點位數
                         price: parseFloat(memberRefund.toFixed(2)), 
@@ -250,7 +252,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
                    className="w-full font-bold bg-gray-50 rounded-lg py-1 px-2 text-sm"
                  />
               </div>
-              <div className="w-16">
+              <div className="w-20">
                 <label className="text-[9px] text-gray-400 font-bold uppercase text-right block">{t('confirm_receipt.price_label')}</label>
                 <input 
                    type="number"
@@ -312,7 +314,7 @@ export const ConfirmReceiptView: React.FC<ConfirmReceiptViewProps> = ({ scanResu
               {/* 提示字：如果有差額 */}
               {Math.abs(manualTotal - calculatedTotal) > 1 && (
                   <span className={`text-[10px] font-bold ${manualTotal < calculatedTotal ? 'text-green-500' : 'text-red-500'}`}>
-                    {manualTotal < calculatedTotal ? 'Discount detected (Auto-added)' : 'Extra charges detected'}
+                    {manualTotal < calculatedTotal ? t('confirm_receipt.discount_detected') : t('confirm_receipt.extra_charges_detected')}
                   </span>
               )}
            </div>

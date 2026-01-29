@@ -10,7 +10,7 @@ const Icons = {
   Trash: () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>,
   Plus: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
   Search: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
-  
+  Users: () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>,
   CheckCircle: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>,
 };
 
@@ -130,7 +130,12 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
     }
     setEditedItems(newItems);
   };
-
+  const handleSplitAll = (index: number) => {
+    const newItems = [...editedItems];
+    // 將所有成員 ID 填入 assignedTo
+    newItems[index].assignedTo = members.map((m: any) => m.id);
+    setEditedItems(newItems);
+  };
   const deleteItem = (index: number) => {
     if (confirm(t('transaction.alerts.remove_item'))) {
         setEditedItems(editedItems.filter((_, i) => i !== index));
@@ -271,7 +276,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                  {isEditing && <button onClick={addItem} className="text-xs font-bold text-primary flex items-center gap-1"><Icons.Plus /> {t('transaction.add_item')}</button>}
               </div>
 
-              {displayItems.map((item: any, idx: number) => (
+              {displayItems.map((item: any, idx: number) => {
+
+                const isAssignedToEveryone = item.assignedTo && item.assignedTo.length === members.length && members.every((m:any) => item.assignedTo.includes(m.id));
+
+                return(
                  <div key={idx} className={`flex items-start justify-between ${isEditing ? 'bg-gray-50 p-3 rounded-xl border border-gray-100' : 'py-1'}`}>
                     {isEditing ? (
                        // --- EDIT MODE ROW ---
@@ -303,6 +312,19 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                           
                           {/* Member Selector */}
                             <div className="flex gap-2 overflow-x-auto no-scrollbar pt-1 pb-1">
+                              <button
+                                onClick={() => handleSplitAll(idx)}
+                                className={`flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold border transition-all shrink-0 ${
+                                  item.assignedTo.length === members.length 
+                                    ? 'bg-indigo-50 text-primary border-indigo-100' 
+                                    : 'bg-white text-gray-500 border-gray-200 hover:bg-gray-50'
+                                }`}
+                             >
+                                <Icons.Users /> {t('confirm_receipt.split_all')}
+                             </button>
+                             
+                             <div className="w-[1px] h-4 bg-gray-200 shrink-0 mx-1"></div>
+
                              {members.map((m: any) => {
                                 const isSelected = item.assignedTo.includes(m.id);
                                 return (
@@ -340,13 +362,15 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                              </span>
                           </div>
                           
-                          <div className="flex flex-wrap gap-2 pl-0.5">
-                             {(!item.assignedTo || item.assignedTo.length === 0) ? (
-                               <div className={`flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full border transition-all whitespace-nowrap bg-gray-100 border-transparent`}>
-                                    <span className={`pl-2 text-xs font-bold text-gray-500`}> {t('transaction.everyone')}</span>
+                         <div className="flex flex-wrap gap-2 pl-0.5">
+                             {/* ★ 這裡改為：如果是所有人 -> 顯示單一按鈕；否則 -> 顯示個別頭像 */}
+                             {isAssignedToEveryone ? (
+                               <div className={`flex items-center gap-1.5 pl-2 pr-3 py-1 rounded-full border transition-all whitespace-nowrap bg-indigo-50 border-indigo-100 text-primary`}>
+                                    <Icons.Users />
+                                    <span className={`text-xs font-bold`}> {t('transaction.everyone')}</span>
                                 </div>
                              ) : (
-                               item.assignedTo.map((uid: string) => {
+                               (item.assignedTo || []).map((uid: string) => {
                                   const m = members.find((mem: any) => mem.id === uid);
                                   if (!m) return null;
                                   return (
@@ -364,13 +388,14 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                        </div>
                     )}
                  </div>
-              ))}
+              )})}
            </div>
            
            {!isEditing && memberShares.length > 0 && (
              <div className="mt-6 pt-4 border-t border-gray-100 animate-in slide-in-from-bottom-2">
                 <h3 className="text-xs font-bold text-gray-400 uppercase mb-3">{t('transaction.member_shares')}</h3>
                 <div className="space-y-2">
+                  
                    {memberShares.map(([memberId, amount]) => {
                       const m = members.find((mem: any) => mem.id === memberId);
                       if (!m) return null;

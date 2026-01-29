@@ -15,7 +15,7 @@ interface ParseResult {
   items: GeminiParsedItem[];
 }
 
-export const processReceiptImage = async (base64Image: string): Promise<ParseResult> => {
+export const processReceiptImage = async (base64Image: string, language: string = 'zh'): Promise<ParseResult> => {
   if (!apiKey) throw new Error("API Key not found. Please check your .env file.");
 
   // 初始化 OpenAI Client (但連線到 OpenRouter)
@@ -32,22 +32,36 @@ export const processReceiptImage = async (base64Image: string): Promise<ParseRes
   // ★ 這里指定使用 Google 的 Gemini 模型
   // 你可以換成 "google/gemini-pro-1.5" 或 "google/gemini-flash-1.5"
   const modelId = "google/gemini-2.5-flash-lite"; 
+  const isChinese = language.startsWith('zh');
+  
+  const targetLanguage = isChinese ? "Traditional Chinese (Hong Kong usage)" : "English";
+
+  const languageInstruction = isChinese 
+    ? `
+      ### CORE INSTRUCTION (MUST FOLLOW)
+      Your output MUST be in **Traditional Chinese (Hong Kong usage / 繁體中文)**.
+      Even if the receipt is in Japanese or English, you **MUST translate** the item names into Chinese.
+      `
+    : `
+      ### CORE INSTRUCTION (MUST FOLLOW)
+      Your output MUST be in **English**.
+      - If the receipt is in Japanese, Chinese, or other languages, you **MUST translate** the item names into English.
+      - If the receipt is already in English, **KEEP IT AS IS** (do not change or translate it).
+      `;
 
  const prompt = `
-    You are an AI assistant helping a user in **Hong Kong** digitize their receipts.
+    You are an AI assistant helping a user digitize their receipts.
     
-    ### CORE INSTRUCTION (MUST FOLLOW)
-    Your output MUST be in **Traditional Chinese (Hong Kong usage / 繁體中文)**.
-    Even if the receipt is in Japanese or English, you **MUST translate** the item names into Chinese.
+    ${languageInstruction}
     
     ---
 
     ### 1. EXTRACTION & TRANSLATION RULES
     Analyze the image and extract line items. For each item:
     
-    1.  **Extract**: Read the text (e.g., "テラリウムコレクション").
-    2.  **Translate**: Convert it to Hong Kong Chinese (e.g., "Pokemon 盆景模型").
-    3.  **Assign**: Put the *translated* text into the "name" field.
+    1.  **Extract**: Read the text.
+    2.  **Translate**: Convert it to **${targetLanguage}**.  <-- ★★★ 這裡改成變數，不要寫死 Chinese ★★★
+    3.  **Assign**: Put the *processed* text into the "name" field.
     
     ### 2. PRICE PARSING LOGIC (CRITICAL FOR JAPANESE RECEIPTS)
     Japanese receipts often list multiple prices for one item. You must follow these priorities:
@@ -70,7 +84,7 @@ export const processReceiptImage = async (base64Image: string): Promise<ParseRes
     - **Merge**: If an item name spans multiple lines, combine them.
 
     ### 4. METADATA
-    - **Shop Name**: Extract the most prominent text (e.g., Pokemon Center).
+    - **Shop Name**: Extract the most prominent text.
     - **Date**: Extract YYYY-MM-DD. If missing, use TODAY.
 
     ### 5. OUTPUT FORMAT
@@ -78,11 +92,11 @@ export const processReceiptImage = async (base64Image: string): Promise<ParseRes
     
     Example Output:
     {
-      "shopName": "Tsuru Ton Tan",
+      "shopName": "Restaurant Name",
       "date": "2026-01-21",
       "items": [
-        { "name": "壽喜燒烏冬", "quantity": 1, "price": 1880 },
-        { "name": "雞肉忌廉烏冬", "quantity": 1, "price": 1630 }
+        { "name": "Item A", "quantity": 1, "price": 1880 },
+        { "name": "Item B", "quantity": 1, "price": 1630 }
       ]
     }
   `;

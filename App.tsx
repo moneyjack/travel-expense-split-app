@@ -5,6 +5,7 @@ import { AppView, TripTab } from './src/types';
 import { supabase } from './src/lib/supabase'; // 確保你有這個檔案
 import { Session } from '@supabase/supabase-js';
 import './src/i18n/config'; // ★★★ 加入這一行 ★★★
+import { useTranslation } from 'react-i18next'; // ★ 確保有引入這個
 // --- 引入分拆出去的頁面組件 ---
 import { TripList } from './src/components/views/TripList';
 import { CreateTripView } from './src/components/views/CreateTrip';
@@ -51,7 +52,7 @@ const MainContent = () => {
   const [scannedImage, setScannedImage] = useState<string>('');
   
   const [viewingExpense, setViewingExpense] = useState<any | null>(null);
-
+  const { t, i18n } = useTranslation();
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
      // 在 Vercel/Web 環境下這是完全可以的
      return localStorage.getItem('hasSeenOnboarding') === 'true';
@@ -114,7 +115,7 @@ const MainContent = () => {
       // B. 呼叫 Gemini 分析 (這裡需要將 File 轉 Base64)
       console.log("Analyzing with Gemini...");
       const base64 = await fileToBase64(compressedFile);
-      const result = await processReceiptImage(base64);
+      const result = await processReceiptImage(base64, i18n.language);
 
       console.log("Analysis Result:", result);
       setScanResult(result);
