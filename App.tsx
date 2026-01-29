@@ -18,7 +18,7 @@ import { ManualEntryView } from './src/components/views/ManualEntryView'; // ★
 import { JoinTripView } from './src/components/views/JoinTripView'
 import Login from './src/components/Login.tsx'; // 假設你有建立 Login 組件
 import { OnboardingView } from './src/components/views/OnboardingView'; // ★ 引入
-
+import { ScanLoading } from './src/components/ui/ScanLoading';
 
 // --- 引入 UI 組件 ---
 import { Loading } from './src/components/ui/Loading';
@@ -28,6 +28,7 @@ import { processReceiptImage } from './services/openrouterService.ts'; // 引入
 import { uploadReceiptImage } from './src/lib/storage'; // 引入之前的上傳服務
 
 import { compressImage } from './src/utils/compressor';
+import { AnimatePresence } from 'framer-motion';
 
 
 // 這是主要的內容顯示區，它需要被包在 TripProvider 裡面才能運作
@@ -187,7 +188,7 @@ const MainContent = () => {
                 <StatsView 
                   trip={activeTrip} 
                   currentUserId={session?.user.id || ''}
-                
+                  onNavigateDashboard={() => setActiveTripTab(TripTab.DASHBOARD)}
                 />
               )}
             </div>
@@ -271,12 +272,9 @@ const MainContent = () => {
        />
 
        {/* 簡單的 Loading 遮罩 */}
-       {isAnalyzing && (
-         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center text-white flex-col gap-4">
-           <Loading />
-           <p className="font-bold">AI 正在努力看收據...</p>
-         </div>
-       )}
+       <AnimatePresence>
+        {isAnalyzing && <ScanLoading />}
+      </AnimatePresence>
 
        {viewingExpense && (
         <TransactionDetailModal 

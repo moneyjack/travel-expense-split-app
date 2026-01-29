@@ -5,7 +5,7 @@ import { SettingsModal } from './SettingsModal';
 import { formatCurrency } from '../../utils/currency';
 import { useTripContext } from '../../context/TripContext';
 import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
-
+import { motion } from 'framer-motion';
 // --- Icons --- (保持不變)
 const Icons = {
   Back: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M15 18l-6-6 6-6"/></svg>,
@@ -87,7 +87,25 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({ trip, onViewExpens
   };
 
   return (
-    <div className="space-y-6 pb-24 animate-in fade-in">
+    <motion.div 
+    
+    initial={{ x: '100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+      
+      // --- 拖曳手勢 (右滑返回) ---
+      drag="x" // 允許水平拖曳
+      dragConstraints={{ left: 0, right: 0 }} // 限制拖曳範圍 (雖然設為0，但配合 elastic 可以產生拉動阻力感)
+      dragElastic={{ left: 0, right: 0.2 }} // 向右拉有彈性，向左拉不動
+      onDragEnd={(e, { offset, velocity }) => {
+        // 如果向右拖超過 100px 或者 快速甩動
+        if (offset.x > 100 || velocity.x > 500) {
+           onNavigateTripList(); // 觸發返回
+        }
+      }}
+      
+      className="space-y-6 pb-24 animate-in fade-in">
       
       {/* Header Actions */}
       <div className="flex justify-between items-center mb-2 px-1">
@@ -211,6 +229,6 @@ export const TripDashboard: React.FC<TripDashboardProps> = ({ trip, onViewExpens
 
       {showShare && <ShareModal trip={trip} onClose={() => setShowShare(false)} />}
       {showSettings && <SettingsModal trip={trip} onClose={() => setShowSettings(false)} />}
-    </div>
+    </motion.div>
   );
 };

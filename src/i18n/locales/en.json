@@ -261,5 +261,11 @@
     "next": "Next",
     "start": "Let's Start!",
     "skip": "Skip"
+  },
+  "scan": {
+    "loading": {
+      "title": "AI Analyzing...",
+      "subtitle": "Recognizing items and amounts 🧾"
+    }
   }
 }

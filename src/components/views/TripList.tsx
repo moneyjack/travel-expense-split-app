@@ -120,7 +120,7 @@ export const TripList: React.FC<TripListProps> = ({ trips, onSelectTrip, onCreat
   }
   
   return (
-    <div className="p-6 min-h-screen bg-gray-50 pb-24 animate-in fade-in">
+    <div className="p-6 min-h-screen bg-gray-50 pb-24 animate-in bg-background  fade-in">
       <div className="flex justify-between items-center mb-8">
         <div>
            <h1 className="text-3xl font-bold text-gray-900">{t('home.title')}</h1>

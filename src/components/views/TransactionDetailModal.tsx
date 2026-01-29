@@ -3,6 +3,7 @@ import { useTripContext } from '../../context/TripContext';
 import { Button } from '../ui/Button';
 import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
 import { formatCurrency } from '../../utils/currency';
+import { motion } from 'framer-motion';
 
 // --- Icons ---
 const Icons = {
@@ -185,10 +186,27 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative flex flex-col max-h-[90vh] animate-in zoom-in-95 overflow-hidden">
+      <motion.div
+      initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+
+        // --- 拖曳手勢 (右滑 或 下滑 關閉) ---
+        drag // 允許任意方向拖曳 (或者 drag="x" 只准右滑)
+        dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+        dragElastic={{ left: 0.1, right: 0.5, top: 0.1, bottom: 0.5 }} // 向右和向下比較好拉
+        onDragEnd={(e, { offset, velocity }) => {
+           // 如果向右 > 100px 或 向下 > 100px
+           if (velocity.x > 500 || velocity.y > 500) {
+              onClose();
+           }
+        }}
+
+       className="bg-white w-full max-w-md rounded-3xl shadow-2xl relative flex flex-col max-h-[90vh] animate-in zoom-in-95 overflow-hidden">
         
         {/* Header */}
-        <div className="px-6 pt-6 flex justify-between items-start z-10 bg-white">
+        <div className="px-6 pt-6 flex justify-between items-start z-10 bg-white shadow-sm">
            <div className="flex-1 mr-4 space-y-2">
               {isEditing ? (
                 <>
@@ -238,7 +256,9 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                             {expense.is_settled && <span className="ml-2 text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full align-middle">{t('transaction.settled')}</span>}
                         </h2>
                         <p className="text-xs text-gray-400 font-medium mt-1">
-                           {new Date(expense.date).toLocaleDateString()} • {t('dashboard.expense.paid_by', { name: members.find((m: any) => m.id === expense.payerId)?.name || t('dashboard.expense.unknown_payer') })}
+                           {new Date(expense.date).toLocaleDateString()}
+                           
+                           <br/>{t('dashboard.expense.paid_by', { name: members.find((m: any) => m.id === expense.payerId)?.name || t('dashboard.expense.unknown_payer') })}
                         </p>
                     </div>
                 </div>
@@ -265,7 +285,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
                   </button>
 
                   <button onClick={() => setIsEditing(true)} className="p-2 text-primary hover:bg-indigo-50 rounded-full"><Icons.Pencil /></button>
-                  {/* <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><Icons.Close /></button> */}
+                   <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full"><Icons.Close /></button>
                 </>
              )}
            </div>
@@ -486,7 +506,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({ 
             <span className="text-2xl font-bold text-primary">{formatCurrency(displayTotal, activeTrip.currency)}</span>
         </div>
 
-      </div>
+      </motion.div>
 
       {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
     </div>

@@ -259,5 +259,11 @@
     "next": "下一步",
     "start": "開始使用",
     "skip": "跳過"
+  },
+  "scan": {
+    "loading": {
+      "title": "AI 分析中...",
+      "subtitle": "正在辨識品項與金額 🧾"
+    }
   }
 }

@@ -3,6 +3,7 @@ import { Trip, Debt } from '../../types';
 import { useTripContext } from '../../context/TripContext'; 
 import { formatCurrency, CURRENCIES } from '../../utils/currency'; // 確保 CURRENCIES 有被引入
 import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
+import { motion } from 'framer-motion';
 
 // Icons
 const Icons = {
@@ -106,7 +107,7 @@ interface StatsViewProps {
   currentUserId: string;
 }
 
-export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => {
+export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId, onNavigateDashboard }) => {
   const { t } = useTranslation(); // ★ 初始化翻譯
   const { settleAllExpenses, loading } = useTripContext();
   const { debts, spending, hasUnsettled } = useMemo(() => calculateTripStats(trip), [trip]);
@@ -125,7 +126,25 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
     return trip.expenses.reduce((acc, curr) => acc + curr.totalAmount, 0);
   }, [trip.expenses]);
   return (
-    <div className="space-y-8 pb-24 animate-in fade-in">
+    <motion.div 
+    
+    initial={{ x: '100%', opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: '100%', opacity: 0 }}
+      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+      
+      // --- 拖曳手勢 (右滑返回) ---
+      drag="x" // 允許水平拖曳
+      dragConstraints={{ left: 0, right: 0 }} // 限制拖曳範圍 (雖然設為0，但配合 elastic 可以產生拉動阻力感)
+      dragElastic={{ left: 0, right: 0.2 }} // 向右拉有彈性，向左拉不動
+      onDragEnd={(e, { offset, velocity }) => {
+        // 如果向右拖超過 100px 或者 快速甩動
+        if (offset.x > 100 || velocity.x > 500) {
+           onNavigateDashboard(); // 觸發返回
+        }
+      }}
+      
+      className="space-y-8 pb-24 animate-in fade-in">
       
       {/* 1. 結算按鈕 */}
       {/* {hasUnsettled && (
@@ -277,6 +296,6 @@ export const StatsView: React.FC<StatsViewProps> = ({ trip, currentUserId }) => 
           </div>
         )}
       </section>
-    </div>
+    </motion.div>
   );
 };
