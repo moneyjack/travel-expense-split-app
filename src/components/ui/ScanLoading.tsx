@@ -1,9 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-
 import { useTranslation } from 'react-i18next'; // ★ 引入 Hook
-const { t } = useTranslation(); // ★ 初始化翻譯
 export const ScanLoading = () => {
+
+    const { t } = useTranslation(); // ★ 初始化翻譯
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
       
